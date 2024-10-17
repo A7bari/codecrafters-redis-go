@@ -28,7 +28,7 @@ func main() {
 	red := bufio.NewReader(conn)
 
 	for {
-		_, err := red.ReadString('\n')
+		_, err := red.ReadBytes(byte('\n'))
 
 		if err != nil {
 			fmt.Println("Error reading from connection: ", err.Error())
