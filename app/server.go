@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -24,19 +23,20 @@ func main() {
 		fmt.Println("Error accepting connection: ", err.Error())
 		os.Exit(1)
 	}
+	// use go routine to handle multiple connections
+	go handleConnection(conn)
+}
 
-	red := bufio.NewReader(conn)
+func handleConnection(conn net.Conn) error {
+	buf := make([]byte, 1024)
 
-	for {
-		buf := make([]byte, 1024)
+	_, err := conn.Read(buf)
 
-		_, err := red.Read(buf)
-
-		if err != nil {
-			fmt.Println("Error reading from connection: ", err.Error())
-			break
-		}
-
-		conn.Write([]byte("+PONG\r\n"))
+	if err != nil {
+		fmt.Println("Error reading from connection: ", err.Error())
+		return err
 	}
+
+	conn.Write([]byte("+PONG\r\n"))
+	return nil
 }
