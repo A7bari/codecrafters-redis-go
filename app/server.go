@@ -28,11 +28,13 @@ func main() {
 	red := bufio.NewReader(conn)
 
 	for {
-		_, err := red.ReadBytes(byte('\n'))
+		buf := make([]byte, 1024)
+
+		_, err := red.Read(buf)
 
 		if err != nil {
 			fmt.Println("Error reading from connection: ", err.Error())
-			os.Exit(1)
+			break
 		}
 
 		conn.Write([]byte("+PONG\r\n"))
