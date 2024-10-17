@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -26,8 +25,8 @@ func main() {
 			os.Exit(1)
 		}
 
-		red := bufio.NewReader(conn)
-		_, err = red.ReadString('\n')
+		buf := make([]byte, 1024)
+		_, err = conn.Read(buf)
 
 		if err != nil {
 			fmt.Println("Error reading from connection: ", err.Error())
