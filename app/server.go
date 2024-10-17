@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
+	"strings"
+
+	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -30,16 +34,26 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
+	reader := resp.NewRespReader(bufio.NewReader(conn))
 	for {
-		buf := make([]byte, 1024)
-
-		_, err := conn.Read(buf)
-
+		resp, err := reader.Read()
 		if err != nil {
 			fmt.Println("Error reading from connection: ", err.Error())
 			break
 		}
 
-		conn.Write([]byte("+PONG\r\n"))
+		if resp.Type != "array" {
+			fmt.Println("expected to recieve an array")
+			break
+		}
+
+		command := resp.Array[0].Bulk
+
+		if strings.ToUpper(command) == "ECHO" {
+			respBuf, _ := resp.Array[1].Marshal()
+			conn.Write(respBuf)
+		} else {
+			conn.Write([]byte("+PONG\r\n"))
+		}
 	}
 }
