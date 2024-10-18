@@ -49,7 +49,7 @@ func handleConnection(conn net.Conn) {
 
 		command := strings.ToUpper(resp.Array[0].Bulk)
 
-		handler, ok := handlers[command]
+		handler, ok := GetHandler(command)
 		if !ok {
 			fmt.Println("Unknown command: ", command)
 			break
