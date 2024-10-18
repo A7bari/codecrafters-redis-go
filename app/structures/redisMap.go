@@ -83,3 +83,28 @@ func Set(params []resp.RESP) resp.RESP {
 		Bulk: "OK",
 	}
 }
+
+func Keys(params []resp.RESP) resp.RESP {
+	if len(params) != 1 {
+		return resp.RESP{
+			Type: "error",
+			Bulk: "ERR wrong number of arguments for 'keys' command",
+		}
+	}
+
+	mut.RLock()
+	defer mut.RUnlock()
+
+	keys := make([]resp.RESP, 0)
+	for key := range mapStore {
+		keys = append(keys, resp.RESP{
+			Type: "bulk",
+			Bulk: key,
+		})
+	}
+
+	return resp.RESP{
+		Type:  "array",
+		Array: keys,
+	}
+}

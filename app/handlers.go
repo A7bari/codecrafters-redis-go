@@ -11,6 +11,7 @@ var Handlers = map[string]func([]resp.RESP) resp.RESP{
 	"CONFIG": GetConfig,
 	"PING":   ping,
 	"ECHO":   echo,
+	"KEYS":   structures.Keys,
 }
 
 func ping(params []resp.RESP) resp.RESP {
