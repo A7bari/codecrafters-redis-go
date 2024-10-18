@@ -118,6 +118,8 @@ func (r *RESP) Marshal() ([]byte, error) {
 	case "error":
 		msg := fmt.Sprintf("-%s\r\n", r.Bulk)
 		return []byte(msg), nil
+	case "nil":
+		return []byte("$-1\r\n"), nil
 	}
 
 	return nil, fmt.Errorf("unsopported type")
