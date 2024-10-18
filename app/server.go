@@ -38,8 +38,8 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		if resp.Type != "array" {
-			fmt.Println("expected to recieve an array")
+		if resp.Type != "array" && len(resp.Array) < 1 {
+			fmt.Println("Invalid command")
 			break
 		}
 
