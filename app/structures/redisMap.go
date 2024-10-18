@@ -60,7 +60,7 @@ func Set(params []*resp.RESP) *resp.RESP {
 
 	expirationDate := time.Time{}
 
-	if strings.ToUpper(params[2].Bulk) == "PX" {
+	if len(params) >= 4 && strings.ToUpper(params[2].Bulk) == "PX" {
 		expiry, err := time.ParseDuration(params[3].Bulk + "ms")
 		if err != nil {
 			return &resp.RESP{
