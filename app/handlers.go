@@ -5,18 +5,12 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/structures"
 )
 
-func GetHandler(command string) (func([]resp.RESP) resp.RESP, bool) {
-	switch command {
-	case "GET":
-		return structures.Get, true
-	case "SET":
-		return structures.Set, true
-	case "PING":
-		return ping, true
-	case "ECHO":
-		return echo, true
-	}
-	return nil, false
+var Handlers = map[string]func([]resp.RESP) resp.RESP{
+	"GET":    structures.Get,
+	"SET":    structures.Set,
+	"CONFIG": GetConfig,
+	"PING":   ping,
+	"ECHO":   echo,
 }
 
 func ping(params []resp.RESP) resp.RESP {

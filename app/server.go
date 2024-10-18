@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -11,6 +12,13 @@ import (
 )
 
 func main() {
+	// read configs flag
+	dir := flag.String("dir", "", "Directory to serve static files from")
+	dbfilename := flag.String("dbfilename", "dump.rdb", "Filename to save the DB to")
+	flag.Parse()
+
+	SetConfig("dir", *dir)
+	SetConfig("dbfilename", *dbfilename)
 
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
 	if err != nil {
@@ -49,7 +57,7 @@ func handleConnection(conn net.Conn) {
 
 		command := strings.ToUpper(resp.Array[0].Bulk)
 
-		handler, ok := GetHandler(command)
+		handler, ok := Handlers[command]
 		if !ok {
 			fmt.Println("Unknown command: ", command)
 			break
