@@ -35,10 +35,11 @@ func handleConnection(conn net.Conn) {
 		resp, err := reader.Read()
 		if err != nil {
 			fmt.Println("Error reading from connection: ", err.Error())
+			conn.Write([]byte("Error reading from connection: " + err.Error()))
 			break
 		}
 
-		if resp.Type != "array" && len(resp.Array) < 1 {
+		if resp.Type != "array" || len(resp.Array) < 1 {
 			fmt.Println("Invalid command")
 			break
 		}
@@ -48,6 +49,7 @@ func handleConnection(conn net.Conn) {
 		handler, ok := handlers[command]
 		if !ok {
 			fmt.Println("Unknown command: ", command)
+			conn.Write([]byte("Unknown command: " + command))
 			break
 		}
 		res, _ := handler(resp.Array[1:]).Marshal()
