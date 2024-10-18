@@ -16,9 +16,9 @@ type mapValue struct {
 var mapStore = make(map[string]mapValue, 0)
 var mut = sync.RWMutex{}
 
-func Get(params []*resp.RESP) *resp.RESP {
+func Get(params []resp.RESP) resp.RESP {
 	if len(params) != 1 {
-		return &resp.RESP{
+		return resp.RESP{
 			Type: "error",
 			Bulk: "ERR wrong number of arguments for 'get' command",
 		}
@@ -29,7 +29,7 @@ func Get(params []*resp.RESP) *resp.RESP {
 	mut.RUnlock()
 
 	if !ok {
-		return &resp.RESP{
+		return resp.RESP{
 			Type: "nil",
 		}
 	}
@@ -39,20 +39,20 @@ func Get(params []*resp.RESP) *resp.RESP {
 		delete(mapStore, params[0].Bulk)
 		mut.Unlock()
 
-		return &resp.RESP{
+		return resp.RESP{
 			Type: "nil",
 		}
 	}
 
-	return &resp.RESP{
+	return resp.RESP{
 		Type: "bulk",
 		Bulk: value.Value,
 	}
 }
 
-func Set(params []*resp.RESP) *resp.RESP {
+func Set(params []resp.RESP) resp.RESP {
 	if len(params) < 2 {
-		return &resp.RESP{
+		return resp.RESP{
 			Type: "error",
 			Bulk: "ERR wrong number of arguments for 'set' command",
 		}
@@ -63,7 +63,7 @@ func Set(params []*resp.RESP) *resp.RESP {
 	if len(params) >= 4 && strings.ToUpper(params[2].Bulk) == "PX" {
 		expiry, err := time.ParseDuration(params[3].Bulk + "ms")
 		if err != nil {
-			return &resp.RESP{
+			return resp.RESP{
 				Type: "error",
 				Bulk: "ERR value is not an integer or out of range",
 			}
@@ -78,7 +78,7 @@ func Set(params []*resp.RESP) *resp.RESP {
 	}
 	mut.Unlock()
 
-	return &resp.RESP{
+	return resp.RESP{
 		Type: "string",
 		Bulk: "OK",
 	}

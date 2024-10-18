@@ -21,14 +21,14 @@ type RESP struct {
 	Type    string
 	Bulk    string
 	Integer int
-	Array   []*RESP
+	Array   []RESP
 }
 
 func NewRespReader(r *bufio.Reader) *RespReader {
 	return &RespReader{reader: r}
 }
 
-func (r *RespReader) Read() (*RESP, error) {
+func (r *RespReader) Read() (RESP, error) {
 	typ, _ := r.reader.ReadByte()
 
 	switch typ {
@@ -37,40 +37,40 @@ func (r *RespReader) Read() (*RESP, error) {
 	case BulkByte:
 		return r.readBulk()
 	}
-	return nil, nil
+	return RESP{}, fmt.Errorf("unsupported type")
 }
 
-func (r *RespReader) readArray() (*RESP, error) {
+func (r *RespReader) readArray() (RESP, error) {
 	size, err := r.readInt()
 	if err != nil {
-		return nil, err
+		return RESP{}, err
 	}
 
-	resuts := make([]*RESP, size)
+	resuts := make([]RESP, size)
 	for i := 0; i < size; i++ {
 		resuts[i], err = r.Read()
 		if err != nil {
-			return nil, err
+			return RESP{}, err
 		}
 	}
-	return &RESP{
+	return RESP{
 		Type:  "array",
 		Array: resuts,
 	}, nil
 }
 
-func (r *RespReader) readBulk() (*RESP, error) {
+func (r *RespReader) readBulk() (RESP, error) {
 	_, err := r.readInt()
 	if err != nil {
-		return nil, err
+		return RESP{}, err
 	}
 
 	buf, err := r.readLine()
 	if err != nil {
-		return nil, err
+		return RESP{}, err
 	}
 
-	return &RESP{
+	return RESP{
 		Type: "bulk",
 		Bulk: string(buf),
 	}, nil
@@ -93,7 +93,7 @@ func (r *RespReader) readInt() (int, error) {
 	return strconv.Atoi(string(line))
 }
 
-func (r *RESP) Marshal() ([]byte, error) {
+func (r RESP) Marshal() ([]byte, error) {
 	switch r.Type {
 	case "bulk":
 		msg := fmt.Sprintf("$%d\r\n%s\r\n", len(r.Bulk), r.Bulk)
