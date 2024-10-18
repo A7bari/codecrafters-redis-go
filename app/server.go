@@ -10,10 +10,6 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
 
-// Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
-var _ = net.Listen
-var _ = os.Exit
-
 func main() {
 
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
