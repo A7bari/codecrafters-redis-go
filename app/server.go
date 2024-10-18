@@ -43,13 +43,19 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		command := resp.Array[0].Bulk
+		command := strings.ToUpper(resp.Array[0].Bulk)
 
-		if strings.ToUpper(command) == "ECHO" {
+		if command == "ECHO" {
 			respBuf, _ := resp.Array[1].Marshal()
 			conn.Write(respBuf)
 		} else {
-			conn.Write([]byte("+PONG\r\n"))
+			handler, ok := handlers[command]
+			if !ok {
+				fmt.Println("Unknown command: ", command)
+				break
+			}
+			res, _ := handler(resp.Array[1:]).Marshal()
+			conn.Write(res)
 		}
 	}
 }
