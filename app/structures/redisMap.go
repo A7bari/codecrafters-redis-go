@@ -14,7 +14,7 @@ type mapValue struct {
 }
 
 var mapStore = make(map[string]mapValue, 0)
-var mut sync.RWMutex
+var mut = sync.RWMutex{}
 
 func Get(params []*resp.RESP) *resp.RESP {
 	if len(params) != 1 {
