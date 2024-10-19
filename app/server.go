@@ -8,7 +8,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/codecrafters-io/redis-starter-go/app/rdb"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
+	"github.com/codecrafters-io/redis-starter-go/app/structures"
 )
 
 func main() {
@@ -19,6 +21,8 @@ func main() {
 
 	SetConfig("dir", *dir)
 	SetConfig("dbfilename", *dbfilename)
+
+	initializeMapStore(*dir, *dbfilename)
 
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
 	if err != nil {
@@ -69,4 +73,14 @@ func handleConnection(conn net.Conn) {
 		}
 		conn.Write(res)
 	}
+}
+
+func initializeMapStore(dir string, dbfilename string) {
+	//load rdb
+	mapStore, err := rdb.ReadFromRDB(dir, dbfilename)
+	if err != nil {
+		fmt.Println("Error loading RDB: ", err.Error())
+	}
+
+	structures.LoadKeys(mapStore)
 }

@@ -8,12 +8,14 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
 
-type mapValue struct {
+type MapValue struct {
 	Value  string
 	Expiry time.Time
 }
 
-var mapStore = make(map[string]mapValue, 0)
+type RedisMap = map[string]MapValue
+
+var mapStore = make(RedisMap, 0)
 var mut = sync.RWMutex{}
 
 func Get(params []resp.RESP) resp.RESP {
@@ -72,7 +74,7 @@ func Set(params []resp.RESP) resp.RESP {
 	}
 
 	mut.Lock()
-	mapStore[params[0].Bulk] = mapValue{
+	mapStore[params[0].Bulk] = MapValue{
 		Value:  params[1].Bulk,
 		Expiry: expirationDate,
 	}
@@ -107,4 +109,10 @@ func Keys(params []resp.RESP) resp.RESP {
 		Type:  "array",
 		Array: keys,
 	}
+}
+
+func LoadKeys(redisMap RedisMap) {
+	mut.Lock()
+	mapStore = redisMap
+	mut.Unlock()
 }
