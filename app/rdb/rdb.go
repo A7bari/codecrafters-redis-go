@@ -19,7 +19,7 @@ type RDB struct {
 
 func newRDB(dir, dbfilename string) (*RDB, error) {
 	// Open the file
-	file, err := os.Open(dbfilename)
+	file, err := os.Open(dir + "/" + dbfilename)
 	if err != nil {
 		return nil, err
 	}
