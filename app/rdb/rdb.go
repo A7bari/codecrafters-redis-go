@@ -44,8 +44,8 @@ func (r *RDB) readKeys() (structures.RedisMap, error) {
 	// Read the header
 	header := make([]byte, 9)
 	r.reader.Read(header)
-	if string(header) != "REDIS0004" {
-		return nil, fmt.Errorf("invalid RDB file")
+	if string(header) != "REDIS0011" {
+		return nil, fmt.Errorf("invalid RDB file: invalid header")
 	}
 
 	for {
@@ -135,7 +135,7 @@ func (r *RDB) startDbRead() (structures.RedisMap, error) {
 func (r *RDB) readSizeEncoded() (int, error) {
 	first, err := r.reader.ReadByte()
 	if err != nil {
-		return 0, fmt.Errorf("invalid RDB file")
+		return 0, fmt.Errorf("invalid RDB file:encoded size, error reading first byte")
 	}
 
 	switch first >> 6 {
@@ -144,7 +144,7 @@ func (r *RDB) readSizeEncoded() (int, error) {
 	case 0b01:
 		nextByte, err := r.reader.ReadByte()
 		if err != nil {
-			return 0, fmt.Errorf("invalid RDB file")
+			return 0, fmt.Errorf("invalid RDB file: encoded size, error reading second byte")
 		}
 		return int(first&0b00111111)<<8 | int(nextByte), nil
 	case 0b10:
