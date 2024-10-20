@@ -74,7 +74,8 @@ func (r *RDB) startDbRead() (structures.RedisMap, error) {
 	}
 
 	redisMap := structures.RedisMap{}
-	currentKey := ""
+	currentExpiry := time.Time{}
+
 	for {
 		it, err := r.reader.ReadByte()
 		if err != nil {
@@ -99,8 +100,6 @@ func (r *RDB) startDbRead() (structures.RedisMap, error) {
 				return nil, err
 			}
 
-			currentKey = key
-
 			value, err := r.readString()
 			if err != nil {
 				return nil, err
@@ -108,24 +107,22 @@ func (r *RDB) startDbRead() (structures.RedisMap, error) {
 
 			redisMap[key] = structures.MapValue{
 				Value:  value,
-				Expiry: time.Time{},
+				Expiry: currentExpiry,
 			}
+
+			currentExpiry = time.Time{}
 		case 0xFC: // the curent key has expiry in ms
 			timestampBytes := make([]byte, 8)
 			r.reader.Read(timestampBytes)
 			timestamp := binary.LittleEndian.Uint64(timestampBytes)
 
-			value := redisMap[currentKey]
-			value.Expiry = time.Unix(0, int64(timestamp)*int64(time.Millisecond))
-			redisMap[currentKey] = value
+			currentExpiry = time.Unix(0, int64(timestamp)*int64(time.Millisecond))
 		case 0xFD: // the curent key has expiry in s
 			timestampBytes := make([]byte, 4)
 			r.reader.Read(timestampBytes)
 			timestamp := binary.LittleEndian.Uint64(timestampBytes)
 
-			value := redisMap[currentKey]
-			value.Expiry = time.Unix(0, int64(timestamp)*int64(time.Second))
-			redisMap[currentKey] = value
+			currentExpiry = time.Unix(0, int64(timestamp)*int64(time.Second))
 		case 0xFF:
 			return redisMap, nil
 		}
