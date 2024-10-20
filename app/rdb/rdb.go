@@ -57,6 +57,7 @@ func (r *RDB) readKeys() (structures.RedisMap, error) {
 
 		switch typ {
 		case 0xFE:
+			fmt.Println("start reading database info...")
 			return r.startDbRead()
 		case 0xFF:
 			return nil, nil
@@ -66,6 +67,12 @@ func (r *RDB) readKeys() (structures.RedisMap, error) {
 }
 
 func (r *RDB) startDbRead() (structures.RedisMap, error) {
+	// read db index
+	_, err := r.readSizeEncoded()
+	if err != nil {
+		return nil, err
+	}
+
 	redisMap := structures.RedisMap{}
 	currentKey := ""
 	for {
@@ -112,7 +119,7 @@ func (r *RDB) startDbRead() (structures.RedisMap, error) {
 			value.Expiry = time.Unix(0, int64(timestamp)*int64(time.Millisecond))
 			redisMap[currentKey] = value
 		case 0xFD: // the curent key has expiry in s
-			timestampBytes := make([]byte, 8)
+			timestampBytes := make([]byte, 4)
 			r.reader.Read(timestampBytes)
 			timestamp := binary.LittleEndian.Uint64(timestampBytes)
 
