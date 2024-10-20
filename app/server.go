@@ -26,10 +26,14 @@ func main() {
 	config.Set("dir", *dir)
 	config.Set("dbfilename", *dbfilename)
 	config.Set("port", *port)
-	config.Set("replicaof", *replicaof)
 	if *replicaof != "" {
 		config.Set("role", "slave")
-		handshack(*replicaof)
+		masterHost := strings.Split(*replicaof, " ")[0]
+		masterPort := strings.Split(*replicaof, " ")[1]
+		config.Set("master_host", masterHost)
+		config.Set("master_port", masterPort)
+
+		handshack(masterHost + ":" + masterPort)
 	} else {
 		config.Set("role", "master")
 	}

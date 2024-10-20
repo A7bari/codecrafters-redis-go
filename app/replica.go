@@ -6,9 +6,9 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
 
-func handshack(replica string) error {
+func handshack(link string) error {
 
-	conn, err := net.Dial("tcp", replica)
+	conn, err := net.Dial("tcp", link)
 	if err != nil {
 		return err
 	}
