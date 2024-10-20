@@ -12,6 +12,7 @@ var Handlers = map[string]func([]resp.RESP) resp.RESP{
 	"PING":   ping,
 	"ECHO":   echo,
 	"KEYS":   structures.Keys,
+	"INFO":   info,
 }
 
 func ping(params []resp.RESP) resp.RESP {
@@ -26,5 +27,25 @@ func echo(params []resp.RESP) resp.RESP {
 	return resp.RESP{
 		Type: "bulk",
 		Bulk: params[0].Bulk,
+	}
+}
+
+func info(params []resp.RESP) resp.RESP {
+	if len(params) < 1 {
+		return resp.RESP{
+			Type: "error",
+			Bulk: "ERR wrong number of arguments for 'info' command",
+		}
+	}
+
+	if params[0].Bulk == "replication" {
+		return resp.RESP{
+			Type: "bulk",
+			Bulk: "node:master",
+		}
+	}
+
+	return resp.RESP{
+		Type: "nil",
 	}
 }

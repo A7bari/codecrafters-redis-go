@@ -37,3 +37,10 @@ func GetConfig(params []resp.RESP) resp.RESP {
 		Bulk: "CONFIG GET: Invalid command",
 	}
 }
+
+func GetInfo(params []resp.RESP) resp.RESP {
+	return resp.RESP{
+		Type: "string",
+		Bulk: "node:master",
+	}
+}
