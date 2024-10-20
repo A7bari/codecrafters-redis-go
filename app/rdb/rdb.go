@@ -60,10 +60,10 @@ func (r *RDB) readKeys() (structures.RedisMap, error) {
 			fmt.Println("start reading database info...")
 			return r.startDbRead()
 		case 0xFF:
-			return nil, nil
+			return nil, fmt.Errorf("invalid RDB file: unexpected EOF")
 		}
 	}
-	return nil, nil
+	return nil, fmt.Errorf("invalid RDB file: unexpected EOF")
 }
 
 func (r *RDB) startDbRead() (structures.RedisMap, error) {

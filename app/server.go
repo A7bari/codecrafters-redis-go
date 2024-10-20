@@ -80,7 +80,7 @@ func initializeMapStore(dir string, dbfilename string) {
 	mapStore, err := rdb.ReadFromRDB(dir, dbfilename)
 	if err != nil {
 		fmt.Println("Error loading RDB: ", err.Error())
+	} else {
+		structures.LoadKeys(mapStore)
 	}
-
-	structures.LoadKeys(mapStore)
 }
