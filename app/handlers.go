@@ -41,7 +41,7 @@ func info(params []resp.RESP) resp.RESP {
 	if params[0].Bulk == "replication" {
 		return resp.RESP{
 			Type: "bulk",
-			Bulk: "node:master",
+			Bulk: "role:master",
 		}
 	}
 
