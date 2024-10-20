@@ -17,6 +17,7 @@ func main() {
 	// read configs flag
 	dir := flag.String("dir", "", "Directory to serve static files from")
 	dbfilename := flag.String("dbfilename", "dump.rdb", "Filename to save the DB to")
+	port := flag.String("port", "6379", "Port to listen on")
 	flag.Parse()
 
 	SetConfig("dir", *dir)
@@ -24,7 +25,7 @@ func main() {
 
 	initializeMapStore(*dir, *dbfilename)
 
-	l, err := net.Listen("tcp", "0.0.0.0:6379")
+	l, err := net.Listen("tcp", "0.0.0.0:"+*port)
 	if err != nil {
 		fmt.Println("Failed to bind to port 6379")
 		os.Exit(1)
