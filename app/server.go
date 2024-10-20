@@ -29,6 +29,7 @@ func main() {
 	config.Set("replicaof", *replicaof)
 	if *replicaof != "" {
 		config.Set("role", "slave")
+		handshack(*replicaof)
 	} else {
 		config.Set("role", "master")
 	}
