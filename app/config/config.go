@@ -1,16 +1,16 @@
-package main
+package config
 
 import "github.com/codecrafters-io/redis-starter-go/app/resp"
 
-var configs = map[string]string{}
+var configs = make(map[string]string)
 
-func SetConfig(key, value string) {
+func Set(key, value string) {
 	configs[key] = value
 }
 
-func GetConfig(key string) (string, bool) {
-	value, ok := configs[key]
-	return value, ok
+func Get(key string) string {
+	value := configs[key]
+	return value
 }
 
 func GetConfigHandler(params []resp.RESP) resp.RESP {

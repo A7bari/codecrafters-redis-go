@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/rdb"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 	"github.com/codecrafters-io/redis-starter-go/app/structures"
@@ -21,10 +22,17 @@ func main() {
 	replicaof := flag.String("replicaof", "", "Replicate to another Redis server")
 	flag.Parse()
 
-	SetConfig("dir", *dir)
-	SetConfig("dbfilename", *dbfilename)
-	SetConfig("port", *port)
-	SetConfig("replicaof", *replicaof)
+	config.Set("dir", *dir)
+	config.Set("dbfilename", *dbfilename)
+	config.Set("port", *port)
+	config.Set("replicaof", *replicaof)
+	if *replicaof != "" {
+		config.Set("role", "slave")
+	} else {
+		config.Set("role", "master")
+	}
+	config.Set("master_replid", "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb")
+	config.Set("master_repl_offset", "0")
 
 	initializeMapStore(*dir, *dbfilename)
 
