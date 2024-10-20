@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
+	"github.com/codecrafters-io/redis-starter-go/app/handlers"
 	"github.com/codecrafters-io/redis-starter-go/app/rdb"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 	"github.com/codecrafters-io/redis-starter-go/app/structures"
@@ -73,7 +74,7 @@ func handleConnection(conn net.Conn) {
 
 		command := strings.ToUpper(resp.Array[0].Bulk)
 
-		handler, ok := Handlers[command]
+		handler, ok := handlers.GetHandler(command)
 		if !ok {
 			fmt.Println("Unknown command: ", command)
 			break
