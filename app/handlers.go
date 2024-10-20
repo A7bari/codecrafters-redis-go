@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 	"github.com/codecrafters-io/redis-starter-go/app/structures"
 )
@@ -8,7 +10,7 @@ import (
 var Handlers = map[string]func([]resp.RESP) resp.RESP{
 	"GET":    structures.Get,
 	"SET":    structures.Set,
-	"CONFIG": GetConfig,
+	"CONFIG": GetConfigHandler,
 	"PING":   ping,
 	"ECHO":   echo,
 	"KEYS":   structures.Keys,
@@ -38,7 +40,14 @@ func info(params []resp.RESP) resp.RESP {
 		}
 	}
 
-	if params[0].Bulk == "replication" {
+	if strings.ToUpper(params[0].Bulk) == "REPLICATION" {
+		replica, ok := GetConfig("replicaof")
+		if ok && replica != "" {
+			return resp.RESP{
+				Type: "bulk",
+				Bulk: "role:slave",
+			}
+		}
 		return resp.RESP{
 			Type: "bulk",
 			Bulk: "role:master",

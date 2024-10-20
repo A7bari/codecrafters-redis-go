@@ -18,10 +18,13 @@ func main() {
 	dir := flag.String("dir", "", "Directory to serve static files from")
 	dbfilename := flag.String("dbfilename", "dump.rdb", "Filename to save the DB to")
 	port := flag.String("port", "6379", "Port to listen on")
+	replicaof := flag.String("replicaof", "", "Replicate to another Redis server")
 	flag.Parse()
 
 	SetConfig("dir", *dir)
 	SetConfig("dbfilename", *dbfilename)
+	SetConfig("port", *port)
+	SetConfig("replicaof", *replicaof)
 
 	initializeMapStore(*dir, *dbfilename)
 

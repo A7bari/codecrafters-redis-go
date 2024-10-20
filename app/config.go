@@ -8,7 +8,12 @@ func SetConfig(key, value string) {
 	configs[key] = value
 }
 
-func GetConfig(params []resp.RESP) resp.RESP {
+func GetConfig(key string) (string, bool) {
+	value, ok := configs[key]
+	return value, ok
+}
+
+func GetConfigHandler(params []resp.RESP) resp.RESP {
 	if len(params) > 1 && params[0].Bulk == "GET" {
 		value, ok := configs[params[1].Bulk]
 		if !ok {
@@ -35,12 +40,5 @@ func GetConfig(params []resp.RESP) resp.RESP {
 	return resp.RESP{
 		Type: "error",
 		Bulk: "CONFIG GET: Invalid command",
-	}
-}
-
-func GetInfo(params []resp.RESP) resp.RESP {
-	return resp.RESP{
-		Type: "string",
-		Bulk: "node:master",
 	}
 }
