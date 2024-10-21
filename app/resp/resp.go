@@ -28,7 +28,7 @@ func NewRespReader(r *bufio.Reader) *RespReader {
 	return &RespReader{reader: r}
 }
 
-func Err(msg string) RESP {
+func Error(msg string) RESP {
 	return RESP{
 		Type: "error",
 		Bulk: msg,

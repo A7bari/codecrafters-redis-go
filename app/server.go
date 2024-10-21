@@ -66,28 +66,28 @@ func handleConnection(conn net.Conn) {
 
 	reader := resp.NewRespReader(bufio.NewReader(conn))
 	for {
-		resp, err := reader.Read()
+		value, err := reader.Read()
 		if err != nil {
 			fmt.Println("Error reading from connection: ", err.Error())
 			break
 		}
 
-		if resp.Type != "array" || len(resp.Array) < 1 {
+		if value.Type != "array" || len(value.Array) < 1 {
 			fmt.Println("Invalid command")
 			break
 		}
 
-		command := strings.ToUpper(resp.Array[0].Bulk)
+		command := strings.ToUpper(value.Array[0].Bulk)
 
 		handler, ok := handlers.GetHandler(command)
 		if !ok {
 			fmt.Println("Unknown command: ", command)
-			unknownMsg, _ := resp.Err(
+			unknownMsg, _ := resp.Error(
 				fmt.Sprintf("ERR unknown command '%s'", command),
 			).Marshal()
 			conn.Write(unknownMsg)
 		}
-		res, err := handler(resp.Array[1:]).Marshal()
+		res, err := handler(value.Array[1:]).Marshal()
 		if err != nil {
 			fmt.Println("Error marshaling response for command:", command, "-", err.Error())
 			continue
