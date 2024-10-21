@@ -13,32 +13,18 @@ func Get(key string) string {
 	return value
 }
 
-func GetConfigHandler(params []resp.RESP) resp.RESP {
+func GetConfigHandler(params []resp.RESP) []byte {
 	if len(params) > 1 && params[0].Bulk == "GET" {
 		value, ok := configs[params[1].Bulk]
 		if !ok {
-			return resp.RESP{
-				Type: "nil",
-			}
+			return resp.Nil().Marshal()
 		}
 
-		return resp.RESP{
-			Type: "array",
-			Array: []resp.RESP{
-				{
-					Type: "bulk",
-					Bulk: params[1].Bulk,
-				},
-				{
-					Type: "bulk",
-					Bulk: value,
-				},
-			},
-		}
+		return resp.Array(
+			resp.Bulk(params[1].Bulk),
+			resp.Bulk(value),
+		).Marshal()
 	}
 
-	return resp.RESP{
-		Type: "error",
-		Bulk: "CONFIG GET: Invalid command",
-	}
+	return resp.Error("ERR wrong number of arguments for 'config' command").Marshal()
 }

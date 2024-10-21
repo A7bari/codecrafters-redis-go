@@ -41,11 +41,7 @@ func send(conn net.Conn, commands ...string) error {
 		comArray[i] = resp.Bulk(command)
 	}
 
-	msg, err := resp.Array(comArray).Marshal()
-
-	if err != nil {
-		return err
-	}
+	msg := resp.Array(comArray...).Marshal()
 
 	conn.Write(msg)
 	return nil

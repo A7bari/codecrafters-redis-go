@@ -49,7 +49,7 @@ func String(s string) RESP {
 	}
 }
 
-func Array(a []RESP) RESP {
+func Array(a ...RESP) RESP {
 	return RESP{
 		Type:  "array",
 		Array: a,
@@ -153,34 +153,32 @@ func (r *RespReader) readInt() (int, error) {
 	return strconv.Atoi(string(line))
 }
 
-func (r RESP) Marshal() ([]byte, error) {
+func (r RESP) Marshal() []byte {
 	switch r.Type {
 	case "bulk":
 		msg := fmt.Sprintf("$%d\r\n%s\r\n", len(r.Bulk), r.Bulk)
-		return []byte(msg), nil
+		return []byte(msg)
 	case "integer":
 		msg := fmt.Sprintf(":%d\r\n", r.Integer)
-		return []byte(msg), nil
+		return []byte(msg)
 	case "string":
 		msg := fmt.Sprintf("+%s\r\n", r.Bulk)
-		return []byte(msg), nil
+		return []byte(msg)
 	case "array":
 		buf := []byte(fmt.Sprintf("*%d\r\n", len(r.Array)))
 		for _, item := range r.Array {
-			m, err := item.Marshal()
-			if err != nil {
-				return nil, err
-			}
-			buf = append(buf, m...)
+			buf = append(buf, item.Marshal()...)
 		}
 
-		return buf, nil
+		return buf
 	case "error":
 		msg := fmt.Sprintf("-%s\r\n", r.Bulk)
-		return []byte(msg), nil
+		return []byte(msg)
 	case "nil":
-		return []byte("$-1\r\n"), nil
+		return []byte("$-1\r\n")
+	case "rdb":
+		return []byte(fmt.Sprintf("$%d\r\n%s", len(r.Bulk), r.Bulk))
 	}
 
-	return nil, fmt.Errorf("unsopported type")
+	return nil
 }

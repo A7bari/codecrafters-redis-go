@@ -7,17 +7,17 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
 
-func replconf(params []resp.RESP) resp.RESP {
-	return resp.String("OK")
+func replconf(params []resp.RESP) []byte {
+	return resp.String("OK").Marshal()
 }
 
-func psync(params []resp.RESP) resp.RESP {
+func psync(params []resp.RESP) []byte {
 	valid := len(params) > 1 && params[0].Bulk == "?" && params[1].Bulk == "-1"
 
 	if valid {
 		msg := fmt.Sprintf("FULLRESYNC %s 0\r\n", config.Get("master_replid"))
-		return resp.String(msg)
+		return resp.String(msg).Marshal()
 	}
 
-	return resp.Error("Uncompleted command")
+	return resp.Error("Uncompleted command").Marshal()
 }
