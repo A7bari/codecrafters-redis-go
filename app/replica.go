@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 
@@ -9,24 +10,28 @@ import (
 )
 
 func handshack() error {
-
-	send("PING")
-
-	send("REPLCONF", "listening-port", config.Get("port"))
-
-	send("REPLCONF", "capa", "psync2")
-
-	return nil
-}
-
-func send(commands ...string) error {
-	fmt.Printf("Sending command to master: %v\n", commands)
 	link := config.Get("master_host") + ":" + config.Get("master_port")
 	conn, err := net.Dial("tcp", link)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
+
+	reader := resp.NewRespReader(bufio.NewReader(conn))
+
+	send(conn, "PING")
+	_, _ = reader.Read()
+
+	send(conn, "REPLCONF", "listening-port", config.Get("port"))
+	_, _ = reader.Read()
+
+	send(conn, "REPLCONF", "capa", "psync2")
+	_, _ = reader.Read()
+	return nil
+}
+
+func send(conn net.Conn, commands ...string) error {
+	fmt.Printf("Sending command to master: %v\n", commands)
 
 	// send ping
 	comArray := make([]resp.RESP, len(commands))
