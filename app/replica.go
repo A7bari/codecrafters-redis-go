@@ -19,7 +19,7 @@ func handshack(link string) error {
 
 	send(conn, "REPLCONF", "listening-port", config.Get("port"))
 
-	send(conn, "REPLCONF", "capa", "eof")
+	send(conn, "REPLCONF", "capa", "psync2")
 
 	return nil
 }
