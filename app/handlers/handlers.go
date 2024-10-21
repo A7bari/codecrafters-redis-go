@@ -11,13 +11,15 @@ import (
 type CommandHandler func([]resp.RESP) resp.RESP
 
 var handlers = map[string]CommandHandler{
-	"GET":    structures.Get,
-	"SET":    structures.Set,
-	"CONFIG": config.GetConfigHandler,
-	"PING":   ping,
-	"ECHO":   echo,
-	"KEYS":   structures.Keys,
-	"INFO":   info,
+	"GET":      structures.Get,
+	"SET":      structures.Set,
+	"CONFIG":   config.GetConfigHandler,
+	"PING":     ping,
+	"ECHO":     echo,
+	"KEYS":     structures.Keys,
+	"INFO":     info,
+	"PSYNC":    psync,
+	"REPLCONF": replconf,
 }
 
 func GetHandler(command string) CommandHandler {
