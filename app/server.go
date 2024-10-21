@@ -79,6 +79,8 @@ func handleConnection(conn net.Conn) {
 
 		command := strings.ToUpper(value.Array[0].Bulk)
 
+		fmt.Printf("Received command: %s\n", command)
+
 		handler, ok := handlers.GetHandler(command)
 		if !ok {
 			fmt.Println("Unknown command: ", command)
@@ -86,6 +88,7 @@ func handleConnection(conn net.Conn) {
 				fmt.Sprintf("ERR unknown command '%s'", command),
 			).Marshal()
 			conn.Write(unknownMsg)
+			continue
 		}
 		res, err := handler(value.Array[1:]).Marshal()
 		if err != nil {
