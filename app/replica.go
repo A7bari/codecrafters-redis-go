@@ -15,18 +15,22 @@ func handshack() error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	// defer conn.Close()
 
 	reader := resp.NewRespReader(bufio.NewReader(conn))
 
 	send(conn, "PING")
-	_, _ = reader.Read()
+	value, _ := reader.Read()
+	fmt.Printf("Received response from master: %v\n", value.Bulk)
 
 	send(conn, "REPLCONF", "listening-port", config.Get("port"))
-	_, _ = reader.Read()
+	value, _ = reader.Read()
+	fmt.Printf("Received response from master: %v\n", value.Bulk)
 
 	send(conn, "REPLCONF", "capa", "psync2")
-	_, _ = reader.Read()
+	value, _ = reader.Read()
+	fmt.Printf("Received response from master: %v\n", value.Bulk)
+
 	return nil
 }
 
