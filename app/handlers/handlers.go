@@ -20,9 +20,12 @@ var handlers = map[string]CommandHandler{
 	"INFO":   info,
 }
 
-func GetHandler(command string) (CommandHandler, bool) {
+func GetHandler(command string) CommandHandler {
 	handler, ok := handlers[strings.ToUpper(command)]
-	return handler, ok
+	if !ok {
+		return unfound
+	}
+	return handler
 }
 
 func ping(params []resp.RESP) resp.RESP {
@@ -38,4 +41,8 @@ func echo(params []resp.RESP) resp.RESP {
 		Type: "bulk",
 		Bulk: params[0].Bulk,
 	}
+}
+
+func unfound(params []resp.RESP) resp.RESP {
+	return resp.Error("Command not found")
 }

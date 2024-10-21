@@ -33,7 +33,7 @@ func main() {
 		config.Set("master_host", masterHost)
 		config.Set("master_port", masterPort)
 
-		handshack(masterHost + ":" + masterPort)
+		handshack()
 	} else {
 		config.Set("role", "master")
 	}
@@ -81,15 +81,8 @@ func handleConnection(conn net.Conn) {
 
 		fmt.Printf("Received command: %s\n", command)
 
-		handler, ok := handlers.GetHandler(command)
-		if !ok {
-			fmt.Println("Unknown command: ", command)
-			unknownMsg, _ := resp.Error(
-				fmt.Sprintf("ERR unknown command '%s'", command),
-			).Marshal()
-			conn.Write(unknownMsg)
-			continue
-		}
+		handler := handlers.GetHandler(command)
+
 		res, err := handler(value.Array[1:]).Marshal()
 		if err != nil {
 			fmt.Println("Error marshaling response for command:", command, "-", err.Error())
