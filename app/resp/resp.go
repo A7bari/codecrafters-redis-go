@@ -28,6 +28,47 @@ func NewRespReader(r *bufio.Reader) *RespReader {
 	return &RespReader{reader: r}
 }
 
+func Err(msg string) RESP {
+	return RESP{
+		Type: "error",
+		Bulk: msg,
+	}
+}
+
+func Integer(i int) RESP {
+	return RESP{
+		Type:    "integer",
+		Integer: i,
+	}
+}
+
+func String(s string) RESP {
+	return RESP{
+		Type: "string",
+		Bulk: s,
+	}
+}
+
+func Array(a []RESP) RESP {
+	return RESP{
+		Type:  "array",
+		Array: a,
+	}
+}
+
+func Nil() RESP {
+	return RESP{
+		Type: "nil",
+	}
+}
+
+func Bulk(b string) RESP {
+	return RESP{
+		Type: "bulk",
+		Bulk: b,
+	}
+}
+
 func (r *RespReader) Read() (RESP, error) {
 	typ, _ := r.reader.ReadByte()
 
