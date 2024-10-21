@@ -20,7 +20,9 @@ func psync(params []resp.RESP) []byte {
 			fmt.Sprintf("FULLRESYNC %s 0\r\n", config.Get("master_replid")),
 		).Marshal()
 
-		msg = append(msg, getRdbFile()...)
+		dbfile := getRdbFile()
+		msg = append(msg, []byte(fmt.Sprintf("$%d\r\n", len(dbfile)))...)
+		msg = append(msg, dbfile...)
 		return msg
 	}
 
