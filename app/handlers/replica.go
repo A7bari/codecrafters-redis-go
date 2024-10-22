@@ -62,6 +62,8 @@ func wait(params []resp.RESP) []byte {
 						cha <- true
 					}
 				}(&replica)
+			} else {
+				cha <- true
 			}
 		}
 
