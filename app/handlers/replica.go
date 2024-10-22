@@ -59,22 +59,22 @@ func wait(params []resp.RESP) []byte {
 				go func(replica *config.Node) {
 					replica.Read()
 					cha <- true
-
 				}(&replica)
 			} else {
 				ack++
 			}
 		}
 
-		if count > len(config.Get().Replicas) {
-			count = len(config.Get().Replicas)
-		}
+		// if count > len(config.Get().Replicas) {
+		// 	count = len(config.Get().Replicas)
+		// }
 
 	loop:
-		for i := 0; i < count; i++ {
+		for ack < count {
 			select {
 			case <-cha:
 				ack++
+				fmt.Print("ack: ", ack)
 				continue
 			case <-time.After(time.Duration(timeout) * time.Microsecond):
 				break loop
