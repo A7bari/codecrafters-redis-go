@@ -21,6 +21,7 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"INFO":     info,
 	"PSYNC":    psync,
 	"REPLCONF": replconf,
+	"WAIT":     wait,
 }
 
 func Handle(conn net.Conn, args []resp.RESP) {

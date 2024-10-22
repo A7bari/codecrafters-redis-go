@@ -41,3 +41,8 @@ func getRdbFile() []byte {
 	}
 	return data
 }
+
+func wait(params []resp.RESP) []byte {
+	rep := len(config.Get().Replicas)
+	return resp.Integer(rep).Marshal()
+}
