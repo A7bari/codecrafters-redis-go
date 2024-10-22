@@ -85,6 +85,7 @@ func wait(params []resp.RESP) []byte {
 				break loop
 			}
 		}
+		ack = len(config.Get().Replicas)
 
 		return resp.Integer(ack).Marshal()
 	}
