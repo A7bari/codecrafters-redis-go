@@ -53,17 +53,16 @@ func wait(params []resp.RESP) []byte {
 		cha := make(chan bool)
 
 		for index, replica := range config.Get().Replicas {
-			go func(idx int, replica *config.Node) {
-				if replica.Offset > 0 {
-					size, _ := replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
-					config.SetReplOffset(idx, size)
+			if replica.Offset > 0 {
+				size, _ := replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
+				config.SetReplOffset(index, size)
+				go func(replica *config.Node) {
 					_, err := replica.Read()
 					if err == nil {
 						cha <- true
 					}
-				}
-
-			}(index, &replica)
+				}(&replica)
+			}
 		}
 
 		if count > len(config.Get().Replicas) {
