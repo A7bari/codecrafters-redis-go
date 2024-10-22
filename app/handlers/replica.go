@@ -51,7 +51,7 @@ func wait(params []resp.RESP) []byte {
 		}
 		timeout, _ := strconv.Atoi(params[1].Bulk)
 		cha := make(chan bool)
-
+		ack := 0
 		for index, replica := range config.Get().Replicas {
 			if replica.Offset > 0 {
 				size, _ := replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
@@ -63,7 +63,7 @@ func wait(params []resp.RESP) []byte {
 					}
 				}(&replica)
 			} else {
-				cha <- true
+				ack++
 			}
 		}
 
@@ -71,7 +71,6 @@ func wait(params []resp.RESP) []byte {
 			count = len(config.Get().Replicas)
 		}
 
-		ack := 0
 	loop:
 		for i := 0; i < count; i++ {
 			select {
