@@ -34,6 +34,6 @@ func getRdbFile() []byte {
 	data, err := hex.DecodeString(file)
 	if err != nil {
 		return nil
-	}
+	}  
 	return data
 }
