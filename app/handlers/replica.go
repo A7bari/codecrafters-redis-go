@@ -49,18 +49,17 @@ func wait(params []resp.RESP) []byte {
 		timeout, _ := strconv.Atoi(params[1].Bulk)
 		cha := make(chan bool)
 
-		for index, replica := range config.Get().Replicas {
-			go func(index int, replica *config.Node) {
+		for _, replica := range config.Get().Replicas {
+			go func(replica *config.Node) {
 				replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
-				// replica.Read()
+				replica.Read()
 				cha <- true
-			}(index, &replica)
+			}(&replica)
 		}
 
 		ack := 0
 	loop:
 		for i := 0; i < count; i++ {
-			// case timeout
 			select {
 			case <-cha:
 				ack++
