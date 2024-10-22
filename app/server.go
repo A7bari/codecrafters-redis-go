@@ -38,9 +38,6 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
-	defer conn.Close()
-	fmt.Println("Received connection: ", conn.RemoteAddr().String())
-
 	reader := resp.NewRespReader(bufio.NewReader(conn))
 	for {
 		value, err := reader.Read()
@@ -54,8 +51,14 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		handlers.Handle(conn, value.Array)
+		err = handlers.Handle(conn, value.Array)
+		if err != nil {
+			fmt.Println("this is a replica")
+			return
+		}
 	}
+
+	conn.Close()
 }
 
 func setup() error {

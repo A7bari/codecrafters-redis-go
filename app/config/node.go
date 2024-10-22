@@ -10,12 +10,14 @@ import (
 type Node struct {
 	Conn   net.Conn
 	Reader *resp.RespReader
+	Offset int
 }
 
 func NewNode(conn net.Conn) Node {
 	return Node{
 		Conn:   conn,
 		Reader: resp.NewRespReader(bufio.NewReader(conn)),
+		Offset: 0,
 	}
 }
 

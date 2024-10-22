@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
@@ -43,6 +44,34 @@ func getRdbFile() []byte {
 }
 
 func wait(params []resp.RESP) []byte {
+	if len(params) > 1 {
+		count, _ := strconv.Atoi(params[0].Bulk)
+		timeout, _ := strconv.Atoi(params[1].Bulk)
+		cha := make(chan bool)
+
+		for index, replica := range config.Get().Replicas {
+			go func(index int, replica *config.Node) {
+				replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
+				replica.Read()
+				cha <- true
+			}(index, &replica)
+		}
+
+		ack := 0
+	loop:
+		for i := 0; i < count; i++ {
+			// case timeout
+			select {
+			case <-cha:
+				ack++
+				continue
+			case <-time.After(time.Duration(timeout) * time.Microsecond):
+				break loop
+			}
+		}
+
+		return resp.Integer(ack).Marshal()
+	}
 	rep := len(config.Get().Replicas)
 	return resp.Integer(rep).Marshal()
 }
