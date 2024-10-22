@@ -22,7 +22,7 @@ type Config struct {
 }
 
 var (
-	configs  *Config
+	configs  *Config = &Config{}
 	once     sync.Once
 	fieldMap = map[string]*string{
 		"dir":                &configs.Dir,
@@ -43,12 +43,10 @@ func Get() *Config {
 		replicaof := flag.String("replicaof", "", "Replicate to another Redis server")
 		flag.Parse()
 
-		configs = &Config{
-			Role:       "master",
-			Dir:        *dir,
-			Dbfilename: *dbfilename,
-			Port:       *port,
-		}
+		configs.Dir = *dir
+		configs.Dbfilename = *dbfilename
+		configs.Port = *port
+		configs.Role = "master"
 
 		if *replicaof != "" {
 			configs.Role = "slave"
