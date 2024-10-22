@@ -52,14 +52,16 @@ func wait(params []resp.RESP) []byte {
 		timeout, _ := strconv.Atoi(params[1].Bulk)
 		cha := make(chan bool)
 		ack := 0
-		for index, replica := range config.Get().Replicas {
-			if replica.Offset > 0 {
-				size, _ := replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
-				config.SetReplOffset(index, size)
+		for i := 0; i < len(config.Get().Replicas); i++ {
+			rep := config.Get().Replicas[i]
+
+			if rep.Offset > 0 {
+				size, _ := rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
+				config.SetReplOffset(i, size)
 				go func(replica *config.Node) {
 					replica.Read()
 					cha <- true
-				}(&replica)
+				}(&rep)
 			} else {
 				ack++
 			}
