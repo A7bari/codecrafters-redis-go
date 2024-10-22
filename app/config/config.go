@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
 
@@ -53,11 +54,12 @@ func Get() *Config {
 			configs.Role = "slave"
 			configs.MasterHost = strings.Split(*replicaof, " ")[0]
 			configs.MasterPort = strings.Split(*replicaof, " ")[1]
-			master, _ := NewNode(
-				configs.MasterHost + ":" + configs.MasterPort,
-			)
-
-			configs.Master = master
+			masterConn, err := net.Dial("tcp", configs.MasterHost+":"+configs.MasterPort)
+			if err != nil {
+				fmt.Println("Error connecting to master: ", err.Error())
+			} else {
+				configs.Master = NewNode(masterConn)
+			}
 		} else {
 			configs.MasterReplid = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb"
 			configs.MasterReplOffset = "0"
@@ -85,14 +87,6 @@ func GetConfigHandler(params []resp.RESP) []byte {
 	return resp.Error("ERR wrong number of arguments for 'config' command").Marshal()
 }
 
-func AddReplicat(port string) {
-	fmt.Println("Adding replica: ", port)
-
-	replica, err := NewNode("0.0.0.0:" + port)
-	if err != nil {
-		fmt.Println("Error adding replica: ", err.Error())
-		return
-	}
-
-	configs.Replicas = append(configs.Replicas, replica)
+func AddReplicat(conn net.Conn) {
+	configs.Replicas = append(configs.Replicas, NewNode(conn))
 }

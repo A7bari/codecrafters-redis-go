@@ -3,21 +3,12 @@ package handlers
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
 
 func replconf(params []resp.RESP) []byte {
-	if len(params) < 2 {
-		return resp.Error("ERR wrong number of arguments for 'replconf' command").Marshal()
-	}
-
-	if strings.ToLower(params[0].Bulk) == "listening-port" {
-		config.AddReplicat(params[1].Bulk)
-	}
-
 	return resp.String("OK").Marshal()
 }
 

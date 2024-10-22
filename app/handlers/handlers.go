@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net"
 	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
@@ -22,18 +23,27 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"REPLCONF": replconf,
 }
 
-func GetHandler(commands resp.RESP) CommandHandler {
-	command := strings.ToUpper(commands.Bulk)
+func Handle(conn net.Conn, args []resp.RESP) {
+	command := strings.ToUpper(args[0].Bulk)
 	handler, ok := handlers[command]
 	if !ok {
-		return notfound
+		handler = notfound
 	}
 
+	if command == "PSYNC" {
+		config.AddReplicat(conn)
+	}
+
+	conn.Write(handler(args[1:]))
+
+	// Propagate the command to all replicas
 	if isWriteCommand(command) {
-		return propagate(handler)
+		for _, replica := range config.Get().Replicas {
+			replica.Write(resp.Array(args...).Marshal())
+		}
 	}
 
-	return handler
+	//
 }
 
 func ping(params []resp.RESP) []byte {
@@ -46,17 +56,6 @@ func echo(params []resp.RESP) []byte {
 
 func notfound(params []resp.RESP) []byte {
 	return resp.Error("Command not found").Marshal()
-}
-
-// propagate is a middleware that will be used to propagate the command to all replicas
-func propagate(handler CommandHandler) CommandHandler {
-	return func(params []resp.RESP) []byte {
-		value := handler(params)
-		for _, replica := range config.Get().Replicas {
-			replica.Write(resp.Array(params...).Marshal())
-		}
-		return value
-	}
 }
 
 func isWriteCommand(command string) bool {

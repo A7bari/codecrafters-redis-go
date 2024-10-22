@@ -41,8 +41,7 @@ func listening(errChan chan error) {
 		}
 
 		if value.Type == "array" && len(value.Array) > 0 {
-			handler := handlers.GetHandler(value.Array[0])
-			master.Write(handler(value.Array[1:]))
+			handlers.Handle(master.Conn, value.Array)
 		} else {
 			errChan <- fmt.Errorf("invalid command")
 		}

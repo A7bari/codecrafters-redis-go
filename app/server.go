@@ -54,9 +54,7 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		handler := handlers.GetHandler(value.Array[0])
-
-		conn.Write(handler(value.Array[1:]))
+		handlers.Handle(conn, value.Array)
 	}
 }
 

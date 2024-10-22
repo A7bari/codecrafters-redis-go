@@ -8,21 +8,15 @@ import (
 )
 
 type Node struct {
-	address string
-	Conn    net.Conn
-	Reader  *resp.RespReader
+	Conn   net.Conn
+	Reader *resp.RespReader
 }
 
-func NewNode(address string) (Node, error) {
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		return Node{}, err
-	}
+func NewNode(conn net.Conn) Node {
 	return Node{
-		address: address,
-		Conn:    conn,
-		Reader:  resp.NewRespReader(bufio.NewReader(conn)),
-	}, nil
+		Conn:   conn,
+		Reader: resp.NewRespReader(bufio.NewReader(conn)),
+	}
 }
 
 func (r Node) Close() {
