@@ -52,8 +52,10 @@ func wait(params []resp.RESP) []byte {
 		for _, replica := range config.Get().Replicas {
 			go func(replica *config.Node) {
 				replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
-				replica.Read()
-				cha <- true
+				_, err := replica.Read()
+				if err == nil {
+					cha <- true
+				}
 			}(&replica)
 		}
 
