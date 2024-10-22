@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -85,6 +86,13 @@ func GetConfigHandler(params []resp.RESP) []byte {
 }
 
 func AddReplicat(port string) {
-	replica, _ := NewNode("0.0.0.0:" + port)
+	fmt.Println("Adding replica: ", port)
+
+	replica, err := NewNode("0.0.0.0:" + port)
+	if err != nil {
+		fmt.Println("Error adding replica: ", err.Error())
+		return
+	}
+
 	configs.Replicas = append(configs.Replicas, replica)
 }
