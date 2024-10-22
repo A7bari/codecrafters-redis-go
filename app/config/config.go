@@ -19,6 +19,7 @@ type Config struct {
 	MasterPort       string
 	MasterReplid     string
 	MasterReplOffset string
+	Offset           int
 	Replicas         []Node
 	Master           Node
 }
@@ -89,4 +90,8 @@ func GetConfigHandler(params []resp.RESP) []byte {
 
 func AddReplicat(conn net.Conn) {
 	configs.Replicas = append(configs.Replicas, NewNode(conn))
+}
+
+func IncOffset(num int) {
+	configs.Offset += num
 }

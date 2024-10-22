@@ -46,5 +46,9 @@ func listening(errChan chan error) {
 		} else {
 			errChan <- fmt.Errorf("invalid command")
 		}
+
+		config.IncOffset(
+			len(value.Marshal()),
+		)
 	}
 }
