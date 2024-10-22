@@ -9,6 +9,9 @@ import (
 )
 
 func replconf(params []resp.RESP) []byte {
+	if params[0].Bulk == "GETACK" {
+		return resp.Command("REPLCONF", "ACK", "0").Marshal()
+	}
 	return resp.String("OK").Marshal()
 }
 

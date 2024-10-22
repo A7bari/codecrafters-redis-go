@@ -28,6 +28,15 @@ func NewRespReader(r *bufio.Reader) *RespReader {
 	return &RespReader{reader: r}
 }
 
+func Command(cmd string, args ...string) RESP {
+	res := make([]RESP, len(args)+1)
+	res[0] = Bulk(cmd)
+	for i, arg := range args {
+		res[i+1] = Bulk(arg)
+	}
+	return Array(res...)
+}
+
 func Error(msg string) RESP {
 	return RESP{
 		Type: "error",

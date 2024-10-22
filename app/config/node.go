@@ -23,18 +23,6 @@ func (r Node) Close() {
 	r.Conn.Close()
 }
 
-func (r Node) Send(commands ...string) error {
-	comArray := make([]resp.RESP, len(commands))
-	for i, command := range commands {
-		comArray[i] = resp.Bulk(command)
-	}
-
-	msg := resp.Array(comArray...).Marshal()
-
-	r.Conn.Write(msg)
-	return nil
-}
-
 func (r Node) Read() (resp.RESP, error) {
 	return r.Reader.Read()
 }
@@ -43,7 +31,6 @@ func (r Node) ReadRDB() (resp.RESP, error) {
 	return r.Reader.ReadRDB()
 }
 
-func (r Node) Write(data []byte) error {
-	r.Conn.Write(data)
-	return nil
+func (r Node) Write(data []byte) (int, error) {
+	return r.Conn.Write(data)
 }

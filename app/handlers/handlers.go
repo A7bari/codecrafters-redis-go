@@ -42,8 +42,19 @@ func Handle(conn net.Conn, args []resp.RESP) {
 			replica.Write(resp.Array(args...).Marshal())
 		}
 	}
+}
 
-	//
+func HandleMaster(conn net.Conn, args []resp.RESP) {
+	command := strings.ToUpper(args[0].Bulk)
+	handler, ok := handlers[command]
+	if !ok {
+		handler = notfound
+	}
+
+	data := handler(args[1:])
+	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "GETACK" {
+		conn.Write(data)
+	}
 }
 
 func ping(params []resp.RESP) []byte {
