@@ -17,8 +17,8 @@ type Config struct {
 	MasterPort       string
 	MasterReplid     string
 	MasterReplOffset string
-	Replicas         []*Node
-	Master           *Node
+	Replicas         []Node
+	Master           Node
 }
 
 var (
