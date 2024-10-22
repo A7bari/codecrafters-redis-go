@@ -87,7 +87,7 @@ func (r *RespReader) Read() (RESP, error) {
 		return Integer(i), nil
 
 	}
-	return RESP{}, fmt.Errorf("unsupported type")
+	return RESP{}, fmt.Errorf("unsupported type: %c", typ)
 }
 
 func (r *RespReader) readArray() (RESP, error) {
