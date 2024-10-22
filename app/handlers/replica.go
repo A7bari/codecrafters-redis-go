@@ -56,20 +56,16 @@ func wait(params []resp.RESP) []byte {
 			rep := config.Get().Replicas[i]
 
 			if rep.Offset > 0 {
-				rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
-
-				go func(replica *config.Node) {
-					value, err := replica.Read()
+				rep.Read()
+				size, _ := rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
+				config.SetReplOffset(i, size)
+				go func(replica config.Node) {
+					_, err := replica.Read()
 					if err != nil {
 						fmt.Println("err REPLCONF")
-					} else {
-						resOffset, _ := strconv.Atoi(value.Array[2].Bulk)
-						if resOffset > 0 && resOffset >= config.Get().Offset {
-							config.SetReplOffset(i, resOffset)
-							cha <- true
-						}
 					}
-				}(&rep)
+					cha <- true
+				}(rep)
 			} else {
 				ack++
 			}
