@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
@@ -10,7 +11,7 @@ import (
 
 func replconf(params []resp.RESP) []byte {
 	if params[0].Bulk == "GETACK" {
-		return resp.Command("REPLCONF", "ACK", string(config.Get().Offset)).Marshal()
+		return resp.Command("REPLCONF", "ACK", strconv.Itoa(config.Get().Offset)).Marshal()
 	}
 	return resp.String("OK").Marshal()
 }
