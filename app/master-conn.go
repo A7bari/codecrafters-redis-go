@@ -41,7 +41,8 @@ func (r *Master) Handshack() error {
 	value, _ = r.reader.Read()
 
 	r.send("PSYNC", "?", "-1")
-	value, _ = r.reader.Read()
+	value, _ = r.reader.Read()    // +FULLRESYNC 8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb 0
+	value, _ = r.reader.ReadRDB() // +RDBFIILE
 	fmt.Printf("Received response from master: %v\n", value.Bulk)
 
 	return nil

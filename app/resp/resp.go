@@ -90,6 +90,27 @@ func (r *RespReader) Read() (RESP, error) {
 	return RESP{}, fmt.Errorf("unsupported type: %c", typ)
 }
 
+func (r *RespReader) ReadRDB() (RESP, error) {
+	typ, _ := r.reader.ReadByte()
+	if typ != BulkByte {
+		return RESP{}, fmt.Errorf("expected '$' as first byte for RDB")
+	}
+	// read size
+	size, err := r.readInt()
+
+	if err != nil {
+		return RESP{}, err
+	}
+
+	buf := make([]byte, size)
+	r.reader.Read(buf)
+
+	return RESP{
+		Type: "rdb",
+		Bulk: string(buf),
+	}, nil
+}
+
 func (r *RespReader) readArray() (RESP, error) {
 	size, err := r.readInt()
 	if err != nil {
