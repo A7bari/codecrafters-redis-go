@@ -59,8 +59,11 @@ func wait(params []resp.RESP) []byte {
 				size, _ := rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
 				config.SetReplOffset(i, size)
 				go func(replica *config.Node) {
+					_, err := replica.Read()
+					if err != nil {
+						fmt.Println("err REPLCONF")
+					}
 					cha <- true
-					replica.Read()
 				}(&rep)
 			} else {
 				ack++
@@ -76,7 +79,7 @@ func wait(params []resp.RESP) []byte {
 			select {
 			case <-cha:
 				ack++
-				fmt.Print("ack: ", ack)
+				fmt.Println("ack: ", ack)
 				continue
 			case <-time.After(time.Duration(timeout) * time.Microsecond):
 				break loop

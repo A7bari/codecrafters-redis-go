@@ -32,10 +32,9 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 		handler = notfound
 	}
 
-	// if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
-	// 	offset, _ := strconv.Atoi(args[2].Bulk)
-	// 	config.SetRepffset(conn.RemoteAddr().String(), offset)
-	// }
+	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
+		fmt.Println("warning: recieved replica ack from client handler ")
+	}
 
 	conn.Write(handler(args[1:]))
 
