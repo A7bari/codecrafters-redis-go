@@ -57,10 +57,9 @@ func wait(params []resp.RESP) []byte {
 				size, _ := replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
 				config.SetReplOffset(index, size)
 				go func(replica *config.Node) {
-					_, err := replica.Read()
-					if err == nil {
-						cha <- true
-					}
+					replica.Read()
+					cha <- true
+
 				}(&replica)
 			} else {
 				ack++
