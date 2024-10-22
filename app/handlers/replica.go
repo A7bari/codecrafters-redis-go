@@ -3,12 +3,21 @@ package handlers
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
 
 func replconf(params []resp.RESP) []byte {
+	if len(params) < 2 {
+		return resp.Error("ERR wrong number of arguments for 'replconf' command").Marshal()
+	}
+
+	if strings.ToLower(params[0].Bulk) == "listening-port" {
+		config.AddReplicat(params[1].Bulk)
+	}
+
 	return resp.String("OK").Marshal()
 }
 
@@ -17,7 +26,7 @@ func psync(params []resp.RESP) []byte {
 
 	if valid {
 		msg := resp.String(
-			fmt.Sprintf("FULLRESYNC %s 0", config.Get("master_replid")),
+			fmt.Sprintf("FULLRESYNC %s 0", config.Get().MasterReplid),
 		).Marshal()
 
 		dbfile := getRdbFile()
@@ -34,6 +43,6 @@ func getRdbFile() []byte {
 	data, err := hex.DecodeString(file)
 	if err != nil {
 		return nil
-	}  
+	}
 	return data
 }

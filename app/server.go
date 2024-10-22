@@ -2,11 +2,9 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"net"
 	"os"
-	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/handlers"
@@ -16,31 +14,12 @@ import (
 )
 
 func main() {
-	// read configs flag
-	dir := flag.String("dir", "", "Directory to serve static files from")
-	dbfilename := flag.String("dbfilename", "dump.rdb", "Filename to save the DB to")
-	port := flag.String("port", "6379", "Port to listen on")
-	replicaof := flag.String("replicaof", "", "Replicate to another Redis server")
-	flag.Parse()
 
-	config.Set("dir", *dir)
-	config.Set("dbfilename", *dbfilename)
-	config.Set("port", *port)
-	if *replicaof != "" {
-		config.Set("role", "slave")
-		masterHost := strings.Split(*replicaof, " ")[0]
-		masterPort := strings.Split(*replicaof, " ")[1]
-		config.Set("master_host", masterHost)
-		config.Set("master_port", masterPort)
-	} else {
-		config.Set("role", "master")
-	}
-	config.Set("master_replid", "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb")
-	config.Set("master_repl_offset", "0")
+	conf := config.Get()
 
 	setup()
 
-	l, err := net.Listen("tcp", "0.0.0.0:"+*port)
+	l, err := net.Listen("tcp", "0.0.0.0:"+conf.Port)
 	if err != nil {
 		fmt.Println("Failed to bind to port 6379")
 		os.Exit(1)
@@ -75,11 +54,7 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		command := strings.ToUpper(value.Array[0].Bulk)
-
-		fmt.Printf("Received command: %s\n", command)
-
-		handler := handlers.GetHandler(command)
+		handler := handlers.GetHandler(value.Array[0])
 
 		conn.Write(handler(value.Array[1:]))
 	}
@@ -89,15 +64,10 @@ func setup() error {
 	//initile the map if rdb file is found
 	initializeMapStore()
 	// if handle the replica if itis a slave
-	if config.Get("role") == "slave" {
-		masterConn, err := NewMaster()
-		if err != nil {
-			return err
-		}
-
-		masterConn.Handshack()
+	if config.Get().Role == "slave" {
+		Handshack()
 		errChan := make(chan error)
-		masterConn.Listen(errChan)
+		ListenOnMaster(errChan)
 		go func() {
 			err := <-errChan
 			fmt.Println("Error reading from master: ", err.Error())
@@ -108,10 +78,7 @@ func setup() error {
 }
 
 func initializeMapStore() {
-	//load rdb
-	dir := config.Get("dir")
-	dbfilename := config.Get("dbfilename")
-	mapStore, err := rdb.ReadFromRDB(dir, dbfilename)
+	mapStore, err := rdb.ReadFromRDB(config.Get().Dir, config.Get().Dbfilename)
 	if err != nil {
 		fmt.Println("Error loading RDB: ", err.Error())
 	} else {

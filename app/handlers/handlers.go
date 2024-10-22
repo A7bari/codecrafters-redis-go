@@ -22,11 +22,17 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"REPLCONF": replconf,
 }
 
-func GetHandler(command string) CommandHandler {
-	handler, ok := handlers[strings.ToUpper(command)]
+func GetHandler(commands resp.RESP) CommandHandler {
+	command := strings.ToUpper(commands.Bulk)
+	handler, ok := handlers[command]
 	if !ok {
 		return notfound
 	}
+
+	if isWriteCommand(command) {
+		return propagate(handler)
+	}
+
 	return handler
 }
 
@@ -40,4 +46,19 @@ func echo(params []resp.RESP) []byte {
 
 func notfound(params []resp.RESP) []byte {
 	return resp.Error("Command not found").Marshal()
+}
+
+// propagate is a middleware that will be used to propagate the command to all replicas
+func propagate(handler CommandHandler) CommandHandler {
+	return func(params []resp.RESP) []byte {
+		value := handler(params)
+		for _, replica := range config.Get().Replicas {
+			replica.Write(resp.Array(params...).Marshal())
+		}
+		return value
+	}
+}
+
+func isWriteCommand(command string) bool {
+	return command == "SET"
 }
