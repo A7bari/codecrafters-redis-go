@@ -79,7 +79,11 @@ func Bulk(b string) RESP {
 }
 
 func (r *RespReader) Read() (RESP, error) {
-	typ, _ := r.reader.ReadByte()
+	typ, err := r.reader.ReadByte()
+	if err != nil {
+		return RESP{}, err
+	}
+
 	switch typ {
 	case ArrayByte:
 		return r.readArray()
