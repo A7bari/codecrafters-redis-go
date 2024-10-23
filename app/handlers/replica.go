@@ -54,10 +54,13 @@ func wait(params []resp.RESP) []byte {
 
 		if rep.GetOffset() > 0 {
 			go func(replica *config.Node, ack chan int) {
-				size, err := replica.SendAck(ack)
+				chann := make(chan int)
+				size, err := replica.SendAck(chann)
 				if err != nil {
 					fmt.Println("err REPLCONF: lost connection " + err.Error())
 				}
+				ack <- <-chann
+				fmt.Println("Received ack throught channel ", size)
 				replica.AddOffset(size)
 			}(rep, cha)
 		} else {

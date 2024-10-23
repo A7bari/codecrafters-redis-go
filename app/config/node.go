@@ -15,7 +15,7 @@ type Node struct {
 	offset   int
 	id       string
 	mu       sync.Mutex
-	AckChans []chan int
+	AckChans []chan<- int
 }
 
 func NewNode(conn net.Conn) *Node {
@@ -25,7 +25,7 @@ func NewNode(conn net.Conn) *Node {
 		offset:   0,
 		id:       conn.RemoteAddr().String(),
 		mu:       sync.Mutex{},
-		AckChans: make([]chan int, 0),
+		AckChans: make([]chan<- int, 0),
 	}
 }
 
@@ -57,7 +57,7 @@ func (r *Node) Write(data []byte) (int, error) {
 	return r.Conn.Write(data)
 }
 
-func (r *Node) SendAck(ack chan int) (int, error) {
+func (r *Node) SendAck(ack chan<- int) (int, error) {
 	r.mu.Lock()
 	r.AckChans = append(r.AckChans, ack)
 	r.mu.Unlock()
