@@ -71,6 +71,6 @@ func (r *Node) ReceiveAck(offset int) {
 	r.mu.Lock()
 	ch := r.AckChans[0]
 	r.AckChans = r.AckChans[1:]
-	r.mu.Unlock()
 	ch <- offset
+	r.mu.Unlock()
 }

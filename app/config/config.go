@@ -6,6 +6,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
@@ -123,4 +124,25 @@ func IncOffset(num int) {
 	mu.Lock()
 	configs.Offset += num
 	mu.Unlock()
+}
+
+func AckRepl(timeout int, maxCount int) int {
+	ackChan := make(chan int)
+	for _, replica := range configs.Replicas {
+		go replica.SendAck(ackChan)
+	}
+
+	count := 0
+	for {
+		select {
+		case <-ackChan:
+			count++
+			if count == maxCount {
+				return count
+			}
+		case <-time.After(time.Duration(timeout) * time.Second):
+			return count
+		}
+	}
+
 }
