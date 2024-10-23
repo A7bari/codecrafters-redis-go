@@ -47,7 +47,7 @@ func wait(params []resp.RESP) []byte {
 	if len(params) > 1 {
 		count, _ := strconv.Atoi(params[0].Bulk)
 		timeout, _ := strconv.Atoi(params[1].Bulk)
-		cha := make(chan bool, count)
+		cha := make(chan bool)
 		ack := 0
 		for i := 0; i < len(config.Get().Replicas); i++ {
 			rep := config.Get().Replicas[i]
