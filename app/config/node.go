@@ -2,6 +2,7 @@ package config
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 	"sync"
 
@@ -9,22 +10,22 @@ import (
 )
 
 type Node struct {
-	Conn    net.Conn
-	Reader  *resp.RespReader
-	offset  int
-	id      string
-	mu      sync.Mutex
-	AckChan chan int
+	Conn     net.Conn
+	Reader   *resp.RespReader
+	offset   int
+	id       string
+	mu       sync.Mutex
+	AckChans []chan int
 }
 
 func NewNode(conn net.Conn) *Node {
 	return &Node{
-		Conn:    conn,
-		Reader:  resp.NewRespReader(bufio.NewReader(conn)),
-		offset:  0,
-		id:      conn.RemoteAddr().String(),
-		mu:      sync.Mutex{},
-		AckChan: make(chan int, 1),
+		Conn:     conn,
+		Reader:   resp.NewRespReader(bufio.NewReader(conn)),
+		offset:   0,
+		id:       conn.RemoteAddr().String(),
+		mu:       sync.Mutex{},
+		AckChans: make([]chan int, 0),
 	}
 }
 
@@ -54,4 +55,22 @@ func (r *Node) ReadRDB() (resp.RESP, error) {
 
 func (r *Node) Write(data []byte) (int, error) {
 	return r.Conn.Write(data)
+}
+
+func (r *Node) SendAck(ack chan int) (int, error) {
+	r.mu.Lock()
+	r.AckChans = append(r.AckChans, ack)
+	r.mu.Unlock()
+	return r.Conn.Write(
+		resp.Command("REPLCONF", "GETACK", "*").Marshal(),
+	)
+}
+
+func (r *Node) ReceiveAck(offset int) {
+	fmt.Println("Received ack from replica : " + r.id)
+	r.mu.Lock()
+	ch := r.AckChans[0]
+	r.AckChans = r.AckChans[1:]
+	r.mu.Unlock()
+	ch <- offset
 }
