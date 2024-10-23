@@ -11,6 +11,7 @@ type Node struct {
 	Conn   net.Conn
 	Reader *resp.RespReader
 	Offset int
+	id     string
 }
 
 func NewNode(conn net.Conn) Node {
@@ -18,6 +19,7 @@ func NewNode(conn net.Conn) Node {
 		Conn:   conn,
 		Reader: resp.NewRespReader(bufio.NewReader(conn)),
 		Offset: 0,
+		id:     conn.RemoteAddr().String(),
 	}
 }
 

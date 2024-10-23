@@ -96,9 +96,14 @@ func AddReplicat(conn net.Conn) {
 	mu.Unlock()
 }
 
-func SetReplOffset(index int, offset int) {
+func SetReplOffset(replica Node, offset int) {
 	mu.Lock()
-	configs.Replicas[index].Offset += offset
+	for i, r := range configs.Replicas {
+		if r.id == replica.id {
+			configs.Replicas[i].Offset = offset
+			break
+		}
+	}
 	mu.Unlock()
 }
 
