@@ -49,14 +49,14 @@ func wait(params []resp.RESP) []byte {
 	count, _ := strconv.Atoi(params[0].Bulk)
 	timeout, _ := strconv.Atoi(params[1].Bulk)
 	acks := 0
-	AckChan := make(chan int, len(config.Get().Replicas))
+	AckChan := make(chan int)
 
 	for i := 0; i < len(config.Get().Replicas); i++ {
 		rep := config.Get().Replicas[i]
 
 		if rep.GetOffset() > 0 {
 			go func(replica *config.Node) {
-				chann := make(chan int, 1)
+				chann := make(chan int)
 				size, err := replica.SendAck(chann)
 				if err != nil {
 					fmt.Println("err REPLCONF: lost connection " + err.Error())
