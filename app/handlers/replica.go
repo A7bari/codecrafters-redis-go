@@ -74,7 +74,7 @@ loop:
 		case <-cha:
 			ack++
 			fmt.Println("ack: ", ack)
-		case <-time.After(time.Duration(timeout) * time.Millisecond):
+		case <-time.After(time.Duration(timeout) * time.Second):
 			break loop
 		}
 	}
