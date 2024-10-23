@@ -75,9 +75,8 @@ func (r *Node) ReceiveAck(offset int) {
 		return
 	}
 
-	ch := r.AckChans[0]
+	r.AckChans[0] <- offset
 	r.AckChans = r.AckChans[1:]
-	ch <- offset
 
 	fmt.Println("Recieve func: Ack sent throught the channel")
 }
