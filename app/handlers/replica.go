@@ -47,32 +47,33 @@ func getRdbFile() []byte {
 func wait(params []resp.RESP) []byte {
 	count, _ := strconv.Atoi(params[0].Bulk)
 	timeout, _ := strconv.Atoi(params[1].Bulk)
-	cha := make(chan bool)
+	cha := make(chan int)
 	ack := 0
 	for i := 0; i < len(config.Get().Replicas); i++ {
 		rep := config.Get().Replicas[i]
 
 		if rep.GetOffset() > 0 {
-			go func(replica *config.Node) {
+			go func(replica *config.Node, ack chan<- int) {
 				size, err := replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
 				if err != nil {
 					fmt.Println("err REPLCONF: lost connection " + err.Error())
 				}
 				replica.AddOffset(size)
-				offset := <-replica.AckChan
-				fmt.Println("WAIT COMM REPLCONF: ", offset)
-				cha <- true
-			}(rep)
+				cha <- <-replica.AckChan
+				fmt.Println("WAIT COMM REPLCONF: ")
+			}(rep, cha)
 		} else {
 			ack++
 		}
 	}
 
+	timer := time.After(time.Duration(timeout) * time.Millisecond)
+
 	for i := 0; i < count; i++ {
 		select {
 		case <-cha:
 			ack++
-		case <-time.After(time.Duration(timeout) * time.Millisecond):
+		case <-timer:
 			i = count
 		}
 	}
