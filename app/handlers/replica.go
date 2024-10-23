@@ -47,7 +47,7 @@ func getRdbFile() []byte {
 func wait(params []resp.RESP) []byte {
 	count, _ := strconv.Atoi(params[0].Bulk)
 	timeout, _ := strconv.Atoi(params[1].Bulk)
-	cha := make(chan int)
+	cha := make(chan int, len(config.Get().Replicas))
 	ack := 0
 	for i := 0; i < len(config.Get().Replicas); i++ {
 		rep := config.Get().Replicas[i]
@@ -71,13 +71,14 @@ func wait(params []resp.RESP) []byte {
 
 	timer := time.After(time.Duration(timeout) * time.Millisecond)
 
+loop:
 	for i := 0; i < count; i++ {
 		select {
 		case <-cha:
 			fmt.Println("Received ack trough main channel")
 			ack++
 		case <-timer:
-			i = count
+			break loop
 		}
 	}
 
