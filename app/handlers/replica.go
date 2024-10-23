@@ -68,14 +68,12 @@ func wait(params []resp.RESP) []byte {
 		}
 	}
 
-loop:
-	for count > ack {
+	for i := 0; i < count; i++ {
 		select {
 		case <-cha:
 			ack++
-			fmt.Println("ack: ", ack)
-		case <-time.After(time.Duration(timeout) * time.Second):
-			break loop
+		case <-time.After(time.Duration(timeout) * time.Millisecond):
+			i = count
 		}
 	}
 
