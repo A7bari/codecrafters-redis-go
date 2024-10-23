@@ -61,6 +61,7 @@ func (r *Node) SendAck(ack chan<- int) (int, error) {
 	r.mu.Lock()
 	r.AckChans = append(r.AckChans, ack)
 	r.mu.Unlock()
+	fmt.Println("Sending from replica : " + r.id)
 	return r.Conn.Write(
 		resp.Command("REPLCONF", "GETACK", "*").Marshal(),
 	)
@@ -69,6 +70,11 @@ func (r *Node) SendAck(ack chan<- int) (int, error) {
 func (r *Node) ReceiveAck(offset int) {
 	fmt.Println("Received ack from replica : " + r.id)
 	r.mu.Lock()
+	if len(r.AckChans) == 0 {
+		r.mu.Unlock()
+		return
+	}
+
 	ch := r.AckChans[0]
 	r.AckChans = r.AckChans[1:]
 	ch <- offset

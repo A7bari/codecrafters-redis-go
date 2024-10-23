@@ -48,5 +48,6 @@ func wait(params []resp.RESP) []byte {
 	count, _ := strconv.Atoi(params[0].Bulk)
 	timeout, _ := strconv.Atoi(params[1].Bulk)
 	acks := config.AckRepl(timeout, count)
+
 	return resp.Integer(acks).Marshal()
 }
