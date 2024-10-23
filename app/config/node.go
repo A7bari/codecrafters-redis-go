@@ -24,7 +24,7 @@ func NewNode(conn net.Conn) *Node {
 		offset:  0,
 		id:      conn.RemoteAddr().String(),
 		mu:      sync.Mutex{},
-		AckChan: make(chan int),
+		AckChan: make(chan int, 1),
 	}
 }
 
