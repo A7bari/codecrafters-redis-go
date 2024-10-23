@@ -71,17 +71,16 @@ func wait(params []resp.RESP) []byte {
 
 	timer := time.After(time.Duration(timeout) * time.Millisecond)
 
-loop:
-	for i := 0; i < count; i++ {
+	for {
 		select {
-		case <-cha:
-			fmt.Println("Received ack trough main channel")
+		case offset := <-cha:
+			fmt.Println("Received ack in the main channel ", offset)
 			ack++
+			if ack == count {
+				return resp.Integer(ack).Marshal()
+			}
 		case <-timer:
-			break loop
+			return resp.Integer(ack).Marshal()
 		}
 	}
-
-	return resp.Integer(ack).Marshal()
-
 }
