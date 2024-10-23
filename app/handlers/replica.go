@@ -70,7 +70,7 @@ func wait(params []resp.RESP) []byte {
 		}
 
 	loop:
-		for ack < len(config.Get().Replicas) {
+		for ack < count {
 			select {
 			case <-cha:
 				ack++
@@ -80,7 +80,6 @@ func wait(params []resp.RESP) []byte {
 				break loop
 			}
 		}
-		// ack = len(config.Get().Replicas)
 
 		return resp.Integer(ack).Marshal()
 	}
