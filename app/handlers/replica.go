@@ -70,17 +70,15 @@ func wait(params []resp.RESP) []byte {
 
 	timer := time.After(time.Duration(timeout) * time.Millisecond)
 
-	for {
-		select {
-		case offset := <-AckChan:
-			fmt.Println("Received ack main chan", offset)
-			acks++
-			if acks == count {
-				return resp.Integer(acks).Marshal()
-			}
-		case <-timer:
+	for range AckChan {
+		acks++
+		if acks == count {
 			return resp.Integer(acks).Marshal()
 		}
 	}
+
+	<-timer
+
+	return resp.Integer(acks).Marshal()
 
 }
