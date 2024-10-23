@@ -51,11 +51,7 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		err = handlers.Handle(conn, value.Array)
-		if err != nil {
-			fmt.Println("this is a replica")
-			return
-		}
+		handlers.Handle(conn, value.Array)
 	}
 
 	conn.Close()
