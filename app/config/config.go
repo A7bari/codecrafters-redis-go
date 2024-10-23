@@ -130,30 +130,21 @@ func AckRepl(timeout int, maxCount int) int {
 	ackChan := make(chan int, len(configs.Replicas))
 
 	for _, replica := range configs.Replicas {
-		go replica.SendAck(ackChan)
+		replica.SetReciever(ackChan)
+		go replica.SendAck()
 	}
 
 	count := 0
-	mu := sync.Mutex{}
-	doneChan := make(chan struct{})
 
-	go func() {
-		for range ackChan {
-			fmt.Println("Received ack")
-			mu.Lock()
+	for count < maxCount {
+		select {
+		case <-ackChan:
+			fmt.Println("All replicas responded.")
 			count++
-			if count == maxCount {
-				close(doneChan)
-			}
-			mu.Unlock()
+		case <-time.After(time.Duration(timeout) * time.Millisecond):
+			fmt.Println("Timeout reached.")
+			return count
 		}
-	}()
-
-	select {
-	case <-doneChan:
-		fmt.Println("All replicas responded.")
-	case <-time.After(time.Duration(timeout) * time.Millisecond):
-		fmt.Println("Timeout reached.")
 	}
 
 	return count

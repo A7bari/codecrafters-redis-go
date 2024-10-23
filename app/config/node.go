@@ -15,7 +15,8 @@ type Node struct {
 	offset   int
 	id       string
 	mu       sync.Mutex
-	AckChans []chan<- int
+	ackChans chan int
+	acks     int
 }
 
 func NewNode(conn net.Conn) *Node {
@@ -25,7 +26,8 @@ func NewNode(conn net.Conn) *Node {
 		offset:   0,
 		id:       conn.RemoteAddr().String(),
 		mu:       sync.Mutex{},
-		AckChans: make([]chan<- int, 0),
+		ackChans: make(chan int, 1),
+		acks:     0,
 	}
 }
 
@@ -57,26 +59,20 @@ func (r *Node) Write(data []byte) (int, error) {
 	return r.Conn.Write(data)
 }
 
-func (r *Node) SendAck(ack chan<- int) (int, error) {
-	r.mu.Lock()
-	r.AckChans = append(r.AckChans, ack)
-	r.mu.Unlock()
-	fmt.Println("Sending from replica : " + r.id)
-	return r.Conn.Write(
+func (r *Node) SendAck() (int, error) {
+	s, err := r.Conn.Write(
 		resp.Command("REPLCONF", "GETACK", "*").Marshal(),
 	)
+	return s, err
 }
 
 func (r *Node) ReceiveAck(offset int) {
-	fmt.Println("Received ack from replica : " + r.id)
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if len(r.AckChans) == 0 {
-		return
-	}
-
-	r.AckChans[0] <- offset
-	r.AckChans = r.AckChans[1:]
-
+	r.ackChans <- offset
 	fmt.Println("Recieve func: Ack sent throught the channel")
+}
+
+func (r *Node) SetReciever(rec chan int) {
+	r.ackChans = rec
 }

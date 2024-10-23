@@ -36,7 +36,7 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
 		fmt.Println("warning: recieved replica ack from client handler ")
 		offset, _ := strconv.Atoi(args[2].Bulk)
-		config.Replica(conn).ReceiveAck(offset)
+		go config.Replica(conn).ReceiveAck(offset)
 		return nil
 	}
 
