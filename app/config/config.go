@@ -127,7 +127,7 @@ func IncOffset(num int) {
 }
 
 func AckRepl(timeout int, maxCount int) int {
-	ackChan := make(chan int)
+	ackChan := make(chan int, len(configs.Replicas))
 	for _, replica := range configs.Replicas {
 		go replica.SendAck(ackChan)
 	}
