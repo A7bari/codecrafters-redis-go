@@ -19,11 +19,12 @@ type Node struct {
 
 func NewNode(conn net.Conn) *Node {
 	return &Node{
-		Conn:   conn,
-		Reader: resp.NewRespReader(bufio.NewReader(conn)),
-		offset: 0,
-		id:     conn.RemoteAddr().String(),
-		mu:     sync.Mutex{},
+		Conn:    conn,
+		Reader:  resp.NewRespReader(bufio.NewReader(conn)),
+		offset:  0,
+		id:      conn.RemoteAddr().String(),
+		mu:      sync.Mutex{},
+		AckChan: make(chan int),
 	}
 }
 
