@@ -2,6 +2,7 @@ package config
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 	"sync"
 
@@ -53,5 +54,6 @@ func (r *Node) ReadRDB() (resp.RESP, error) {
 }
 
 func (r *Node) Write(data []byte) (int, error) {
+	fmt.Println("Write data to node: ", string(data))
 	return r.Conn.Write(data)
 }
