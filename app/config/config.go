@@ -129,13 +129,14 @@ func IncOffset(num int) {
 func AckRepl(timeout int, maxCount int) int {
 	ackChan := make(chan int)
 	for _, replica := range configs.Replicas {
-		go replica.SendAck(ackChan)
+		replica.SendAck(ackChan)
 	}
 
 	count := 0
 	for {
 		select {
 		case <-ackChan:
+			fmt.Println("Received ack")
 			count++
 			if count == maxCount {
 				return count
