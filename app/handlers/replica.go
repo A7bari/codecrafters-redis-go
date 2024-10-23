@@ -76,7 +76,7 @@ func wait(params []resp.RESP) []byte {
 				ack++
 				fmt.Println("ack: ", ack)
 				continue
-			case <-time.After(time.Duration(timeout) * time.Microsecond):
+			case <-time.After(time.Duration(timeout) * time.Millisecond):
 				break loop
 			}
 		}
