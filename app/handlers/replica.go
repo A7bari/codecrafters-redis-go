@@ -44,48 +44,41 @@ func getRdbFile() []byte {
 }
 
 func wait(params []resp.RESP) []byte {
-	if len(params) > 1 {
-		count, _ := strconv.Atoi(params[0].Bulk)
-		timeout, _ := strconv.Atoi(params[1].Bulk)
-		cha := make(chan bool)
-		ack := 0
-		for i := 0; i < len(config.Get().Replicas); i++ {
-			rep := config.Get().Replicas[i]
+	count, _ := strconv.Atoi(params[0].Bulk)
+	timeout, _ := strconv.Atoi(params[1].Bulk)
+	cha := make(chan bool)
+	ack := 0
+	for i := 0; i < len(config.Get().Replicas); i++ {
+		rep := config.Get().Replicas[i]
 
-			if rep.GetOffset() > 0 {
-				size, _ := rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
-				rep.AddOffset(size)
-				go func(replica *config.Node, chanAck chan bool) {
-					for {
-						v, err := rep.Read()
-						if err != nil {
-							fmt.Println("err REPLCONF" + err.Error())
-							continue
-						}
-						fmt.Println("REPLCONF: ", v)
-						break
-					}
-					chanAck <- true
-				}(rep, cha)
-			} else {
-				ack++
-			}
+		if rep.GetOffset() > 0 {
+			size, _ := rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
+			rep.AddOffset(size)
+			go func(replica *config.Node, chanAck chan bool) {
+				v, err := rep.Read()
+				if err != nil {
+					fmt.Println("err REPLCONF" + err.Error())
+				}
+				fmt.Println("REPLCONF: ", v)
+				chanAck <- true
+			}(rep, cha)
+		} else {
+			ack++
 		}
-
-	loop:
-		for ack < count {
-			select {
-			case <-cha:
-				ack++
-				fmt.Println("ack: ", ack)
-				continue
-			case <-time.After(time.Duration(timeout) * time.Millisecond):
-				break loop
-			}
-		}
-
-		return resp.Integer(ack).Marshal()
 	}
-	rep := len(config.Get().Replicas)
-	return resp.Integer(rep).Marshal()
+
+loop:
+	for ack < count {
+		select {
+		case <-cha:
+			ack++
+			fmt.Println("ack: ", ack)
+			continue
+		case <-time.After(time.Duration(timeout) * time.Millisecond):
+			break loop
+		}
+	}
+
+	return resp.Integer(ack).Marshal()
+
 }
