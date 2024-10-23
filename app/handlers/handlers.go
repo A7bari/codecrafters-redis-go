@@ -49,10 +49,10 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 
 	// Propagate the command to all replicas
 	if isWriteCommand(command) {
-		go func() {
+		go func(cmd []byte) {
 			for i := 0; i < len(config.Get().Replicas); i++ {
 				replica := config.Get().Replicas[i]
-				writtenSize, _ := replica.Write(resp.Array(args...).Marshal())
+				writtenSize, _ := replica.Write(cmd)
 				// if err != nil {
 				// 	// disconnected
 				// 	config.RemoveReplica(replica)
@@ -61,7 +61,7 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 				// }
 				replica.AddOffset(writtenSize)
 			}
-		}()
+		}(resp.Array(args...).Marshal())
 	}
 
 	return nil
