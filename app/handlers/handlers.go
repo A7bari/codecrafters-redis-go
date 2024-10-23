@@ -38,6 +38,7 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 		offset, _ := strconv.Atoi(args[2].Bulk)
 		fmt.Println("offset: ", offset)
 		config.Replica(conn).AckChan <- offset
+		return nil
 	}
 
 	conn.Write(handler(args[1:]))
