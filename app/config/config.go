@@ -96,6 +96,18 @@ func AddReplicat(conn net.Conn) {
 	mu.Unlock()
 }
 
+func Replica(conn net.Conn) *Node {
+	mu.RLock()
+	defer mu.RUnlock()
+	for _, replica := range configs.Replicas {
+		if replica.id == conn.RemoteAddr().String() {
+			return replica
+		}
+	}
+
+	return nil
+}
+
 func RemoveReplica(replica *Node) {
 	mu.Lock()
 	for i, rep := range configs.Replicas {

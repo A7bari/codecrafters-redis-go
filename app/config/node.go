@@ -9,11 +9,12 @@ import (
 )
 
 type Node struct {
-	Conn   net.Conn
-	Reader *resp.RespReader
-	offset int
-	id     string
-	mu     sync.Mutex
+	Conn    net.Conn
+	Reader  *resp.RespReader
+	offset  int
+	id      string
+	mu      sync.Mutex
+	AckChan chan int
 }
 
 func NewNode(conn net.Conn) *Node {

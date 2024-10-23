@@ -14,6 +14,7 @@ func replconf(params []resp.RESP) []byte {
 	if params[0].Bulk == "GETACK" {
 		return resp.Command("REPLCONF", "ACK", strconv.Itoa(config.Get().Offset)).Marshal()
 	}
+
 	return resp.String("OK").Marshal()
 }
 
@@ -58,12 +59,8 @@ func wait(params []resp.RESP) []byte {
 			}
 			rep.AddOffset(size)
 			go func(replica *config.Node, chanAck chan bool) {
-				v, err := rep.Read()
-				if err != nil {
-					fmt.Println("err REPLCONF" + err.Error())
-					return
-				}
-				fmt.Println("REPLCONF: ", v)
+				offset := <-replica.AckChan
+				fmt.Println("WAIT COMM REPLCONF: ", offset)
 				chanAck <- true
 			}(rep, cha)
 		} else {
