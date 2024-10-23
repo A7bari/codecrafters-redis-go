@@ -55,12 +55,12 @@ func wait(params []resp.RESP) []byte {
 			if rep.GetOffset() > 0 {
 				go func(replica *config.Node) {
 					size, _ := rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
-					buf := make([]byte, 1024)
-					v, err := rep.Conn.Read(buf)
-					if err != nil {
-						fmt.Println("err REPLCONF" + err.Error())
-					}
-					fmt.Println("REPLCONF: ", string(buf[:v]))
+					// buf := make([]byte, 1024)
+					// v, err := rep.Conn.Read(buf)
+					// if err != nil {
+					// 	fmt.Println("err REPLCONF" + err.Error())
+					// }
+					// fmt.Println("REPLCONF: ", string(buf[:v]))
 					replica.AddOffset(size)
 					cha <- true
 				}(rep)
