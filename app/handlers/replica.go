@@ -53,7 +53,7 @@ func wait(params []resp.RESP) []byte {
 		rep := config.Get().Replicas[i]
 
 		if rep.GetOffset() > 0 {
-			go func(replica *config.Node, chanAck chan bool) {
+			go func(replica *config.Node) {
 				size, err := replica.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
 				if err != nil {
 					fmt.Println("err REPLCONF: lost connection " + err.Error())
@@ -61,8 +61,8 @@ func wait(params []resp.RESP) []byte {
 				replica.AddOffset(size)
 				offset := <-replica.AckChan
 				fmt.Println("WAIT COMM REPLCONF: ", offset)
-				chanAck <- true
-			}(rep, cha)
+				cha <- true
+			}(rep)
 		} else {
 			ack++
 		}
