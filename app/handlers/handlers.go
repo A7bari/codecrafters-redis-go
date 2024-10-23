@@ -52,13 +52,13 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 		go func() {
 			for i := 0; i < len(config.Get().Replicas); i++ {
 				replica := config.Get().Replicas[i]
-				writtenSize, err := replica.Write(resp.Array(args...).Marshal())
-				if err != nil {
-					// disconnected
-					config.RemoveReplica(replica)
-					i--
-					return
-				}
+				writtenSize, _ := replica.Write(resp.Array(args...).Marshal())
+				// if err != nil {
+				// 	// disconnected
+				// 	config.RemoveReplica(replica)
+				// 	i--
+				// 	return
+				// }
 				replica.AddOffset(writtenSize)
 			}
 		}()
