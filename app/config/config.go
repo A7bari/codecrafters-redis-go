@@ -141,7 +141,7 @@ func AckRepl(timeout int, maxCount int) int {
 			if count == maxCount {
 				return count
 			}
-		case <-time.After(time.Duration(timeout) * time.Second):
+		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			return count
 		}
 	}
