@@ -45,10 +45,12 @@ func getRdbFile() []byte {
 }
 
 func wait(params []resp.RESP) []byte {
+	fmt.Println("Received WAIT command: ", params)
 	count, _ := strconv.Atoi(params[0].Bulk)
 	timeout, _ := strconv.Atoi(params[1].Bulk)
-	cha := make(chan int, len(config.Get().Replicas))
-	ack := 0
+	acks := 0
+	AckChan := make(chan int, 1)
+
 	for i := 0; i < len(config.Get().Replicas); i++ {
 		rep := config.Get().Replicas[i]
 
@@ -62,10 +64,11 @@ func wait(params []resp.RESP) []byte {
 				offset := <-chann
 				fmt.Println("Received ack throught send channel ", offset)
 				replica.AddOffset(size)
-				cha <- offset
+
+				AckChan <- offset
 			}(rep)
 		} else {
-			ack++
+			acks++
 		}
 	}
 
@@ -73,14 +76,15 @@ func wait(params []resp.RESP) []byte {
 
 	for {
 		select {
-		case offset := <-cha:
-			fmt.Println("Received ack in the main channel ", offset)
-			ack++
-			if ack == count {
-				return resp.Integer(ack).Marshal()
+		case offset := <-AckChan:
+			fmt.Println("Received ack main chan", offset)
+			acks++
+			if acks == count {
+				return resp.Integer(acks).Marshal()
 			}
 		case <-timer:
-			return resp.Integer(ack).Marshal()
+			return resp.Integer(acks).Marshal()
 		}
 	}
+
 }
