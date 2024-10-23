@@ -61,6 +61,7 @@ func wait(params []resp.RESP) []byte {
 				v, err := rep.Read()
 				if err != nil {
 					fmt.Println("err REPLCONF" + err.Error())
+					return
 				}
 				fmt.Println("REPLCONF: ", v)
 				chanAck <- true
