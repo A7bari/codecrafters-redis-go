@@ -52,14 +52,14 @@ func wait(params []resp.RESP) []byte {
 		for i := 0; i < len(config.Get().Replicas); i++ {
 			rep := config.Get().Replicas[i]
 
-			if rep.Offset > 0 {
-				go func(replica config.Node) {
+			if rep.GetOffset() > 0 {
+				go func(replica *config.Node) {
 					size, _ := rep.Write(resp.Command("REPLCONF", "GETACK", "*").Marshal())
 					_, err := replica.Read()
 					if err != nil {
-						fmt.Println("err REPLCONF")
+						fmt.Println("err REPLCONF" + err.Error())
 					}
-					config.SetReplOffset(replica, size)
+					replica.AddOffset(size)
 					cha <- true
 				}(rep)
 			} else {

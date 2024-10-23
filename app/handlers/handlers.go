@@ -46,9 +46,9 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 	// Propagate the command to all replicas
 	if isWriteCommand(command) {
 		for _, replica := range config.Get().Replicas {
-			go func(replica config.Node) {
+			go func(replica *config.Node) {
 				writtenSize, _ := replica.Write(resp.Array(args...).Marshal())
-				config.SetReplOffset(replica, writtenSize)
+				replica.AddOffset(writtenSize)
 			}(replica)
 		}
 	}

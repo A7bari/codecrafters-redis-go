@@ -20,7 +20,7 @@ type Config struct {
 	MasterReplid     string
 	MasterReplOffset string
 	Offset           int
-	Replicas         []Node
+	Replicas         []*Node
 	Master           Node
 }
 
@@ -60,13 +60,13 @@ func Get() *Config {
 			if err != nil {
 				fmt.Println("Error connecting to master: ", err.Error())
 			} else {
-				configs.Master = NewNode(masterConn)
+				configs.Master = *NewNode(masterConn)
 			}
 		} else {
 			configs.MasterReplid = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb"
 		}
 
-		configs.Replicas = make([]Node, 0)
+		configs.Replicas = make([]*Node, 0)
 	})
 
 	return configs
@@ -93,17 +93,6 @@ func GetConfigHandler(params []resp.RESP) []byte {
 func AddReplicat(conn net.Conn) {
 	mu.Lock()
 	configs.Replicas = append(configs.Replicas, NewNode(conn))
-	mu.Unlock()
-}
-
-func SetReplOffset(replica Node, offset int) {
-	mu.Lock()
-	for i, r := range configs.Replicas {
-		if r.id == replica.id {
-			configs.Replicas[i].Offset = offset
-			break
-		}
-	}
 	mu.Unlock()
 }
 
