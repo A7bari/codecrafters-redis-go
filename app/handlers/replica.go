@@ -59,9 +59,10 @@ func wait(params []resp.RESP) []byte {
 					v, err := rep.Read()
 					if err != nil {
 						fmt.Println("err REPLCONF" + err.Error())
+					} else {
+						replica.AddOffset(size)
 					}
 					fmt.Println("REPLCONF: ", v)
-					replica.AddOffset(size)
 					cha <- true
 				}(rep)
 			} else {
