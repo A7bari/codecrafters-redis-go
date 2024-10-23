@@ -49,7 +49,7 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 
 	// Propagate the command to all replicas
 	if isWriteCommand(command) {
-
+		fmt.Print("Propagating command to replicas: ", string(resp.Array(args...).Marshal()))
 		for i := 0; i < len(config.Get().Replicas); i++ {
 			replica := config.Get().Replicas[i]
 			writtenSize, _ := replica.Write(resp.Array(args...).Marshal())
