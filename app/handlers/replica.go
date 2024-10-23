@@ -47,13 +47,13 @@ func getRdbFile() []byte {
 func wait(params []resp.RESP) []byte {
 	count, _ := strconv.Atoi(params[0].Bulk)
 	timeout, _ := strconv.Atoi(params[1].Bulk)
-	cha := make(chan int, len(config.Get().Replicas))
+	cha := make(chan int)
 	ack := 0
 	for i := 0; i < len(config.Get().Replicas); i++ {
 		rep := config.Get().Replicas[i]
 
 		if rep.GetOffset() > 0 {
-			go func(replica *config.Node, ack chan int) {
+			go func(replica *config.Node) {
 				chann := make(chan int, 1)
 				size, err := replica.SendAck(chann)
 				if err != nil {
@@ -62,8 +62,8 @@ func wait(params []resp.RESP) []byte {
 				offset := <-chann
 				fmt.Println("Received ack throught send channel ", offset)
 				replica.AddOffset(size)
-				ack <- offset
-			}(rep, cha)
+				cha <- offset
+			}(rep)
 		} else {
 			ack++
 		}
