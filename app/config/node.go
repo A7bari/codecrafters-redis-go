@@ -60,7 +60,7 @@ func (r *Node) Write(data []byte) (int, error) {
 func (r *Node) SendAck(ack chan<- int) (int, error) {
 	r.mu.Lock()
 	r.AckChans = append(r.AckChans, ack)
-	defer r.mu.Unlock()
+	r.mu.Unlock()
 	fmt.Println("Sending from replica : " + r.id)
 	return r.Conn.Write(
 		resp.Command("REPLCONF", "GETACK", "*").Marshal(),

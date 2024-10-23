@@ -134,17 +134,26 @@ func AckRepl(timeout int, maxCount int) int {
 	}
 
 	count := 0
-	timer := time.After(time.Duration(timeout) * time.Millisecond)
-	for count < maxCount {
-		select {
-		case <-ackChan:
-			fmt.Println("Received ack")
-			count++
+	mu := sync.Mutex{}
+	doneChan := make(chan struct{})
 
-		case <-timer:
-			fmt.Println("Timeout")
-			return count
+	go func() {
+		for range ackChan {
+			fmt.Println("Received ack")
+			mu.Lock()
+			count++
+			if count == maxCount {
+				close(doneChan)
+			}
+			mu.Unlock()
 		}
+	}()
+
+	select {
+	case <-doneChan:
+		fmt.Println("All replicas responded.")
+	case <-time.After(time.Duration(timeout) * time.Millisecond):
+		fmt.Println("Timeout reached.")
 	}
 
 	return count
