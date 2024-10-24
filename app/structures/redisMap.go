@@ -91,3 +91,11 @@ func LoadKeys(redisMap RedisMap) {
 	mapStore = redisMap
 	mut.Unlock()
 }
+
+func Exists(key string) bool {
+	mut.RLock()
+	_, ok := mapStore[key]
+	mut.RUnlock()
+
+	return ok
+}
