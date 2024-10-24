@@ -2,7 +2,6 @@ package config
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"sync"
 
@@ -15,8 +14,7 @@ type Node struct {
 	offset   int
 	id       string
 	mu       sync.Mutex
-	ackChans chan int
-	acks     int
+	AckChans []chan int
 }
 
 func NewNode(conn net.Conn) *Node {
@@ -26,8 +24,7 @@ func NewNode(conn net.Conn) *Node {
 		offset:   0,
 		id:       conn.RemoteAddr().String(),
 		mu:       sync.Mutex{},
-		ackChans: make(chan int, 1),
-		acks:     0,
+		AckChans: make([]chan int, 0),
 	}
 }
 
@@ -59,20 +56,21 @@ func (r *Node) Write(data []byte) (int, error) {
 	return r.Conn.Write(data)
 }
 
-func (r *Node) SendAck() (int, error) {
+func (r *Node) SendAck(ack chan int) (int, error) {
+	r.mu.Lock()
+	r.AckChans = append(r.AckChans, ack)
+	r.mu.Unlock()
 	s, err := r.Conn.Write(
 		resp.Command("REPLCONF", "GETACK", "*").Marshal(),
 	)
+
 	return s, err
 }
 
 func (r *Node) ReceiveAck(offset int) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.ackChans <- offset
-	fmt.Println("Recieve func: Ack sent throught the channel")
-}
-
-func (r *Node) SetReciever(rec chan int) {
-	r.ackChans = rec
+	cha := r.AckChans[0]
+	r.AckChans = r.AckChans[1:]
+	cha <- offset
 }

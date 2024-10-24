@@ -130,12 +130,12 @@ func AckRepl(timeout int, maxCount int) int {
 	ackChan := make(chan int, len(configs.Replicas))
 
 	for _, replica := range configs.Replicas {
-		replica.SetReciever(ackChan)
-		go replica.SendAck()
+		go replica.SendAck(ackChan)
 	}
 
 	count := 0
 
+loop:
 	for count < maxCount {
 		select {
 		case <-ackChan:
@@ -143,9 +143,22 @@ func AckRepl(timeout int, maxCount int) int {
 			count++
 		case <-time.After(time.Duration(timeout) * time.Millisecond):
 			fmt.Println("Timeout reached.")
-			return count
+			break loop
 		}
 	}
 
+	clearAckChans(ackChan)
+
 	return count
+}
+
+func clearAckChans(ackChan chan int) {
+	for _, replica := range configs.Replicas {
+		for i := 0; i < len(replica.AckChans); i++ {
+			if replica.AckChans[i] == ackChan {
+				replica.AckChans = append(replica.AckChans[:i], replica.AckChans[i+1:]...)
+				break
+			}
+		}
+	}
 }
