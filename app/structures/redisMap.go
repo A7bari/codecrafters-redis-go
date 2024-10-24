@@ -127,7 +127,7 @@ func Xadd(params []resp.RESP) []byte {
 
 	mapStore[params[0].Bulk] = stream
 
-	return resp.Bulk("0-1").Marshal()
+	return resp.Bulk(entryKey).Marshal()
 }
 
 func Typ(params []resp.RESP) []byte {
