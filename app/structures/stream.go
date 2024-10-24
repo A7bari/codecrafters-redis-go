@@ -50,7 +50,7 @@ func (s *Stream) validateKey(key string) error {
 	lastIds := strings.Split(s.Entries[len-1].Key, "-")
 
 	if (ids[0] < lastIds[0]) || (ids[0] == lastIds[0] && ids[1] <= lastIds[1]) {
-		return fmt.Errorf("ERR The ID specified in XADD is smaller than the target stream top item")
+		return fmt.Errorf("ERR The ID specified in XADD is equal or smaller than the target stream top item")
 	}
 
 	return nil
