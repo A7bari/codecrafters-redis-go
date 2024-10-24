@@ -46,7 +46,7 @@ func (s *Stream) validateKey(key string) bool {
 		return true
 	}
 
-	lastIds := strings.Split(s.Entries[len].Key, "-")
+	lastIds := strings.Split(s.Entries[len-1].Key, "-")
 
 	if ids[0] < lastIds[0] {
 		return false
