@@ -38,7 +38,7 @@ func (s *Stream) Get(key string) (map[string]string, bool) {
 
 func (s *Stream) validateKey(key string) error {
 	ids := strings.Split(key, "-")
-	if ids[0] < "0" && ids[1] < "1" {
+	if ids[0] < "0" || (ids[0] == "0" && ids[1] <= "0") {
 		return fmt.Errorf("ERR The ID specified in XADD must be greater than 0-0")
 	}
 
