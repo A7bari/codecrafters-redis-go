@@ -25,6 +25,7 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"REPLCONF": replconf,
 	"WAIT":     wait,
 	"TYPE":     structures.Typ,
+	"XADD":     structures.Xadd,
 }
 
 func Handle(conn net.Conn, args []resp.RESP) error {
