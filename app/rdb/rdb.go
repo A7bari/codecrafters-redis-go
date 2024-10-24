@@ -106,7 +106,8 @@ func (r *RDB) startDbRead() (structures.RedisMap, error) {
 			}
 
 			redisMap[key] = structures.MapValue{
-				Value:  value,
+				Typ:    "string",
+				String: value,
 				Expiry: currentExpiry,
 			}
 

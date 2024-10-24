@@ -24,7 +24,7 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"PSYNC":    psync,
 	"REPLCONF": replconf,
 	"WAIT":     wait,
-	"TYPE":     typ,
+	"TYPE":     structures.Typ,
 }
 
 func Handle(conn net.Conn, args []resp.RESP) error {
@@ -95,14 +95,4 @@ func notfound(params []resp.RESP) []byte {
 
 func isWriteCommand(command string) bool {
 	return command == "SET"
-}
-
-func typ(params []resp.RESP) []byte {
-	key := params[0].Bulk
-	ok := structures.Exists(key)
-	if !ok {
-		return resp.String("none").Marshal()
-	}
-
-	return resp.String("string").Marshal()
 }
