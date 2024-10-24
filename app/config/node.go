@@ -63,7 +63,7 @@ func (r *Node) SendAck(ack chan int) (int, error) {
 	s, err := r.Conn.Write(
 		resp.Command("REPLCONF", "GETACK", "*").Marshal(),
 	)
-
+	r.AddOffset(s)
 	return s, err
 }
 
