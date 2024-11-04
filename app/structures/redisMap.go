@@ -120,14 +120,14 @@ func Xadd(params []resp.RESP) []byte {
 		}
 	}
 
-	err := stream.Stream.Add(entryKey, newMap)
+	key, err := stream.Stream.Add(entryKey, newMap)
 	if err != nil {
 		return resp.Error(err.Error()).Marshal()
 	}
 
 	mapStore[params[0].Bulk] = stream
 
-	return resp.Bulk(entryKey).Marshal()
+	return resp.Bulk(key).Marshal()
 }
 
 func Typ(params []resp.RESP) []byte {

@@ -21,35 +21,37 @@ func NewStream() *Stream {
 	}
 }
 
-func (s *Stream) Add(key string, pairs map[string]string) error {
+func (s *Stream) Add(key string, pairs map[string]string) (string, error) {
 	tmstmp, strSeq, err := parseKey(key)
 	if err != nil {
-		return err
+		return key, err
 	}
 
 	timestamp, seq, err := s.formatKey(tmstmp, strSeq)
 	if err != nil {
-		return err
+		return key, err
 	}
 
 	err = s.validateKey(timestamp, seq)
 
 	if err != nil {
-		return err
+		return key, err
 	}
 
 	if _, ok := s.Entries[timestamp]; !ok {
 		s.Entries[timestamp] = []Entry{}
 	}
 
-	s.Entries[timestamp] = append(s.Entries[timestamp], NewEntry(timestamp, seq, pairs))
+	newEntry := NewEntry(timestamp, seq, pairs)
+
+	s.Entries[timestamp] = append(s.Entries[timestamp], newEntry)
 
 	s.size++
 	if timestamp > s.lastTimestamp {
 		s.lastTimestamp = timestamp
 	}
 
-	return nil
+	return newEntry.Key, nil
 }
 
 func (s *Stream) Get(key string) (map[string]string, bool) {
