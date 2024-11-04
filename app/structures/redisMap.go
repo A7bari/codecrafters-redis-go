@@ -95,41 +95,6 @@ func LoadKeys(redisMap RedisMap) {
 	mut.Unlock()
 }
 
-func Xadd(params []resp.RESP) []byte {
-	if len(params) < 2 {
-		return resp.Error("ERR wrong number of arguments for 'xadd' command").Marshal()
-	}
-
-	mut.Lock()
-	defer mut.Unlock()
-
-	stream, ok := mapStore[params[0].Bulk]
-	entryKey := params[1].Bulk
-
-	newMap := make(map[string]string, 0)
-	for i := 2; i < len(params); i += 2 {
-		if i+1 < len(params) {
-			newMap[params[i].Bulk] = params[i+1].Bulk
-		}
-	}
-
-	if !ok {
-		stream = MapValue{
-			Typ:    "stream",
-			Stream: NewStream(),
-		}
-	}
-
-	key, err := stream.Stream.Add(entryKey, newMap)
-	if err != nil {
-		return resp.Error(err.Error()).Marshal()
-	}
-
-	mapStore[params[0].Bulk] = stream
-
-	return resp.Bulk(key).Marshal()
-}
-
 func Typ(params []resp.RESP) []byte {
 	if len(params) != 1 {
 		return resp.Error("ERR wrong number of arguments for 'type' command").Marshal()
