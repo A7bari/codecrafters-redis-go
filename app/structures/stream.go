@@ -2,7 +2,9 @@ package structures
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Entry struct {
@@ -11,24 +13,60 @@ type Entry struct {
 }
 
 type Stream struct {
-	Entries []Entry
+	Entries       map[int64][]Entry
+	size          int
+	lastTimestamp int64
+	lastSeq       int
 }
 
 func NewStream() *Stream {
-	return &Stream{Entries: []Entry{}}
+	return &Stream{
+		Entries:       map[int64][]Entry{},
+		size:          0,
+		lastTimestamp: 0,
+		lastSeq:       1,
+	}
 }
 
 func (s *Stream) Add(key string, pairs map[string]string) error {
-	err := s.validateKey(key)
+	tmstmp, strSeq, err := parseKey(key)
 	if err != nil {
 		return err
 	}
-	s.Entries = append(s.Entries, Entry{Key: key, Pairs: pairs})
+
+	timestamp, seq, err := s.formatKey(tmstmp, strSeq)
+	if err != nil {
+		return err
+	}
+
+	err = s.validateKey(timestamp, seq)
+
+	if err != nil {
+		return err
+	}
+
+	if _, ok := s.Entries[timestamp]; !ok {
+		s.Entries[timestamp] = []Entry{}
+	}
+
+	s.Entries[timestamp] = append(s.Entries[timestamp], Entry{Key: key, Pairs: pairs})
+
+	s.size++
+	if timestamp > s.lastTimestamp {
+		s.lastTimestamp = timestamp
+		s.lastSeq = seq
+	}
+
 	return nil
 }
 
 func (s *Stream) Get(key string) (map[string]string, bool) {
-	for _, e := range s.Entries {
+	timestamp, _, err := parseKey(key)
+	if err != nil {
+		return nil, false
+	}
+
+	for _, e := range s.Entries[timestamp] {
 		if e.Key == key {
 			return e.Pairs, true
 		}
@@ -36,22 +74,78 @@ func (s *Stream) Get(key string) (map[string]string, bool) {
 	return nil, false
 }
 
-func (s *Stream) validateKey(key string) error {
-	ids := strings.Split(key, "-")
-	if ids[0] < "0" || (ids[0] == "0" && ids[1] <= "0") {
+func (s *Stream) validateKey(timestamp int64, seq int) error {
+
+	if timestamp < 0 || (timestamp == 0 && seq <= 0) {
 		return fmt.Errorf("ERR The ID specified in XADD must be greater than 0-0")
 	}
 
-	len := len(s.Entries)
-	if len == 0 {
+	if s.size == 0 {
 		return nil
 	}
 
-	lastIds := strings.Split(s.Entries[len-1].Key, "-")
-
-	if (ids[0] < lastIds[0]) || (ids[0] == lastIds[0] && ids[1] <= lastIds[1]) {
-		return fmt.Errorf("ERR The ID specified in XADD is equal or smaller than the target stream top item")
+	if _, ok := s.Entries[timestamp]; !ok {
+		if (timestamp < s.lastTimestamp) || (timestamp == s.lastTimestamp && seq <= s.LastSeq(timestamp)) {
+			return fmt.Errorf("ERR The ID specified in XADD is equal or smaller than the target stream top item")
+		}
 	}
 
 	return nil
+}
+
+func (s *Stream) formatKey(timestamp int64, strSeq string) (int64, int, error) {
+	if timestamp < 0 {
+		timestamp := time.Now().UnixMilli()
+		return timestamp, 0, nil
+	}
+
+	if strSeq == "*" {
+		lastSeq := s.LastSeq(timestamp)
+
+		return timestamp, lastSeq + 1, nil
+	}
+
+	seq, err := strconv.Atoi(strSeq)
+	if err != nil {
+		return 0, 0, fmt.Errorf("ERR invalid stream ID format: seq must be an integer")
+	}
+
+	return timestamp, seq, nil
+}
+
+func parseKey(key string) (int64, string, error) {
+	if key == "*" {
+		return -1, "*", nil
+	}
+
+	ids := strings.Split(key, "-")
+	if len(ids) != 2 {
+		return 0, "", fmt.Errorf("ERR invalid stream ID format: <timestamp>-<seq>")
+	}
+
+	timestamp, err := strconv.ParseInt(ids[0], 10, 64)
+	if err != nil {
+		return 0, "", fmt.Errorf("ERR invalid stream ID format: timestamp must be an integer")
+	}
+
+	return timestamp, ids[1], nil
+}
+
+func (e Entry) Seq() int {
+	ids := strings.Split(e.Key, "-")
+	seq, _ := strconv.Atoi(ids[1])
+	return seq
+}
+
+func (s *Stream) LastSeq(timestamp int64) int {
+	entries, ok := s.Entries[timestamp]
+	if !ok {
+		return -1
+	}
+
+	return entries[len(entries)-1].Seq()
+}
+
+func (s *Stream) Len() int {
+	return s.size
 }
