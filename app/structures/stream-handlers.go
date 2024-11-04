@@ -70,7 +70,7 @@ func XRange(params []resp.RESP) []byte {
 			pairs = append(pairs, resp.Bulk(k), resp.Bulk(v))
 		}
 
-		res = append(res, resp.Array(resp.Bulk(entry.Key), resp.Array(pairs...)))
+		res = append(res, resp.Array(resp.Bulk(entry.Key()), resp.Array(pairs...)))
 	}
 
 	return resp.Array(res...).Marshal()
