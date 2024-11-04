@@ -1,6 +1,7 @@
 package structures
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 
@@ -124,5 +125,7 @@ func XRead(params []resp.RESP) []byte {
 
 	}
 
-	return resp.Array(streams...).Marshal()
+	res := resp.Array(streams...).Marshal()
+	fmt.Printf("XREAD: %s\n", string(res))
+	return res
 }
