@@ -1,6 +1,11 @@
 package structures
 
-import "github.com/codecrafters-io/redis-starter-go/app/resp"
+import (
+	"math"
+	"strconv"
+
+	"github.com/codecrafters-io/redis-starter-go/app/resp"
+)
 
 func Xadd(params []resp.RESP) []byte {
 	if len(params) < 2 {
@@ -58,7 +63,7 @@ func XRange(params []resp.RESP) []byte {
 	}
 
 	if end == "+" {
-		end = "99999999999999999"
+		end = strconv.Itoa(math.MaxInt64)
 	}
 
 	entries := val.Stream.Range(start, end)
