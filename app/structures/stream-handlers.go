@@ -91,8 +91,8 @@ func XRead(params []resp.RESP) []byte {
 
 	streams := make([]resp.RESP, 0)
 
-	streamKeysLen := (len(params)-1)/2 + 1
-	for i := 1; i < streamKeysLen+1; i += 1 {
+	streamsLen := (len(params) - 1) / 2
+	for i := 1; i < streamsLen+1; i += 1 {
 		streamKey := params[i].Bulk
 		val, ok := mapStore[streamKey]
 		if !ok || val.Typ != "stream" {
@@ -101,7 +101,7 @@ func XRead(params []resp.RESP) []byte {
 
 		stream := val.Stream
 
-		startKey := params[i+streamKeysLen].Bulk
+		startKey := params[i+streamsLen].Bulk
 		entries := stream.Read(startKey)
 		for _, entry := range entries {
 			pairs := []resp.RESP{}
