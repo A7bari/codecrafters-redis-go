@@ -59,11 +59,11 @@ func XRange(params []resp.RESP) []byte {
 	end := params[2].Bulk
 
 	if start == "-" {
-		start = "0"
+		start = "0-0"
 	}
 
 	if end == "+" {
-		end = strconv.Itoa(math.MaxInt64)
+		end = strconv.Itoa(math.MaxInt) + "-" + strconv.Itoa(math.MaxInt)
 	}
 
 	entries := val.Stream.Range(start, end)

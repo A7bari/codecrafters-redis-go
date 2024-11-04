@@ -163,11 +163,11 @@ func (s *Stream) Range(start, end string) []Entry {
 	for timestamp, entry := range s.Entries {
 		if timestamp >= startTmstmp && timestamp <= endTmstmp {
 			for _, e := range entry {
-				if timestamp == startTmstmp && e.Seq() < startSeq {
+				if timestamp == startTmstmp && e.Seq() <= startSeq {
 					continue
 				}
 
-				if timestamp == endTmstmp && e.Seq() > endSeq {
+				if timestamp == endTmstmp && e.Seq() >= endSeq {
 					continue
 				}
 
