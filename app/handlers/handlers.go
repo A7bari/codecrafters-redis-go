@@ -27,6 +27,7 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"TYPE":     structures.Typ,
 	"XADD":     structures.Xadd,
 	"XRANGE":   structures.XRange,
+	"XREAD":    structures.XRead,
 }
 
 func Handle(conn net.Conn, args []resp.RESP) error {

@@ -162,16 +162,48 @@ func (s *Stream) Range(start, end string) []Entry {
 	entries := []Entry{}
 	for timestamp, entry := range s.Entries {
 		if timestamp >= startTmstmp && timestamp <= endTmstmp {
-			for _, e := range entry {
-				if timestamp == startTmstmp && e.Seq() < startSeq {
-					continue
-				}
+			if timestamp == startTmstmp || timestamp == endTmstmp {
+				for _, e := range entry {
+					if timestamp == startTmstmp && e.Seq() < startSeq {
+						continue
+					}
 
-				if timestamp == endTmstmp && e.Seq() > endSeq {
-					continue
-				}
+					if timestamp == endTmstmp && e.Seq() > endSeq {
+						continue
+					}
 
-				entries = append(entries, e)
+					entries = append(entries, e)
+				}
+			} else {
+				entries = append(entries, entry...)
+			}
+		}
+	}
+
+	return entries
+}
+
+func (s *Stream) Read(start string) []Entry {
+	startTmstmp, startSeqStr, err := parseKey(start)
+	if err != nil {
+		return []Entry{}
+	}
+
+	startSeq, _ := strconv.Atoi(startSeqStr)
+
+	entries := []Entry{}
+	for timestamp, entry := range s.Entries {
+		if timestamp >= startTmstmp {
+			if timestamp == startTmstmp {
+				for _, e := range entry {
+					if timestamp == startTmstmp && e.Seq() <= startSeq {
+						continue
+					}
+
+					entries = append(entries, e)
+				}
+			} else {
+				entries = append(entries, entry...)
 			}
 		}
 	}
