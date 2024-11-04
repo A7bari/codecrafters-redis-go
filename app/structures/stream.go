@@ -7,11 +7,6 @@ import (
 	"time"
 )
 
-type Entry struct {
-	Key   string
-	Pairs map[string]string
-}
-
 type Stream struct {
 	Entries       map[int64][]Entry
 	size          int
@@ -47,7 +42,7 @@ func (s *Stream) Add(key string, pairs map[string]string) error {
 		s.Entries[timestamp] = []Entry{}
 	}
 
-	s.Entries[timestamp] = append(s.Entries[timestamp], Entry{Key: key, Pairs: pairs})
+	s.Entries[timestamp] = append(s.Entries[timestamp], NewEntry(timestamp, seq, pairs))
 
 	s.size++
 	if timestamp > s.lastTimestamp {
@@ -129,12 +124,6 @@ func parseKey(key string) (int64, string, error) {
 	}
 
 	return timestamp, ids[1], nil
-}
-
-func (e Entry) Seq() int {
-	ids := strings.Split(e.Key, "-")
-	seq, _ := strconv.Atoi(ids[1])
-	return seq
 }
 
 func (s *Stream) LastSeq(timestamp int64) int {
