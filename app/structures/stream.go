@@ -196,7 +196,7 @@ func (s *Stream) Read(start string) []Entry {
 		if timestamp >= startTmstmp {
 			if timestamp == startTmstmp {
 				for _, e := range entry {
-					if timestamp == startTmstmp && e.Seq() <= startSeq {
+					if e.Seq() <= startSeq {
 						continue
 					}
 
