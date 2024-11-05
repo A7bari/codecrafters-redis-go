@@ -175,16 +175,16 @@ func XRead(params []resp.RESP) []byte {
 
 func waitForNewEntry(streamsKeys []string, ch chan bool) {
 	originalSize := streamsSize(streamsKeys)
-	fmt.Println("original size: ", originalSize)
+
 	for {
 		newSize := streamsSize(streamsKeys)
+
 		if newSize > originalSize {
 			ch <- true
-			fmt.Println("new entry added : size -  ", newSize)
 			return
 		}
 
-		<-time.After(50 * time.Millisecond)
+		<-time.After(100 * time.Millisecond)
 	}
 }
 
@@ -192,6 +192,7 @@ func streamsSize(streams []string) int {
 	size := 0
 	for _, streamKey := range streams {
 		stream, ok := mapStore[streamKey]
+
 		if !ok || stream.Typ != "stream" {
 			continue
 		}
@@ -217,18 +218,17 @@ func foramtKeys(params []resp.RESP) ([]string, []string, error) {
 
 		if id == "$" {
 			stream, ok := mapStore[streamKey]
+
 			if !ok || stream.Typ != "stream" {
 				id = "0-0"
 			} else {
 				lastTimestamp := stream.Stream.LastTimestamp()
 				lastSeq := stream.Stream.LastSeq(lastTimestamp)
-
 				id = fmt.Sprintf("%d-%d", lastTimestamp, lastSeq)
 			}
 		}
 
 		streams = append(streams, streamKey)
-		fmt.Print(" || streamkey (", streamKey, ") id (", id, ") || ")
 		ids = append(ids, id)
 	}
 
