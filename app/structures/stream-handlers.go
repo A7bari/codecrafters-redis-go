@@ -146,8 +146,13 @@ func XRead(params []resp.RESP) []byte {
 			return resp.Error("ERR invalid timeout").Marshal()
 		}
 
-		<-time.After(time.Duration(wait) * time.Millisecond)
-
+		if wait == 0 {
+			ch := make(chan bool)
+			go waitForNewEntry(params[3:], ch)
+			<-ch
+		} else {
+			<-time.After(time.Duration(wait) * time.Millisecond)
+		}
 		res := xreadStreams(params[3:])
 
 		if res.Type == "array" && len(res.Array) == 0 {
@@ -158,4 +163,34 @@ func XRead(params []resp.RESP) []byte {
 	}
 
 	return resp.Nil().Marshal()
+}
+
+func waitForNewEntry(params []resp.RESP, ch chan bool) {
+	half := len(params) / 2
+	streams := params[:half]
+	originalSize := streamsSize(streams)
+
+	for {
+		newSize := streamsSize(streams)
+		if newSize > originalSize {
+			ch <- true
+			return
+		}
+
+		<-time.After(100 * time.Millisecond)
+	}
+}
+
+func streamsSize(streams []resp.RESP) int {
+	size := 0
+	for _, streamResp := range streams {
+		stream, ok := mapStore[streamResp.Bulk]
+		if !ok || stream.Typ != "stream" {
+			continue
+		}
+
+		size += stream.Stream.Len()
+	}
+
+	return size
 }
