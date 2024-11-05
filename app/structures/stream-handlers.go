@@ -227,6 +227,7 @@ func foramtKeys(params []resp.RESP) ([]string, []string, error) {
 		}
 
 		streams = append(streams, streamKey)
+		fmt.Print(" streamkey (", id, ") ")
 		ids = append(ids, id)
 	}
 
