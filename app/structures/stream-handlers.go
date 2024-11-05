@@ -146,7 +146,8 @@ func XRead(params []resp.RESP) []byte {
 			return resp.Error("ERR invalid timeout").Marshal()
 		}
 
-		time.Sleep(time.Duration(wait) * time.Millisecond)
+		<-time.After(time.Duration(wait) * time.Millisecond)
+
 		res := xreadStreams(params[2:])
 		if res.Type == "array" && len(res.Array) == 0 {
 			return resp.Nil().Marshal()
