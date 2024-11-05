@@ -161,26 +161,21 @@ func (s *Stream) Range(start, end string) []Entry {
 
 	entries := []Entry{}
 	for timestamp, entry := range s.Entries {
-		if timestamp >= startTmstmp && timestamp <= endTmstmp {
-			if timestamp == startTmstmp {
-				for _, e := range entry {
-					if e.Seq() < startSeq {
-						continue
-					}
-
-					entries = append(entries, e)
+		if timestamp > startTmstmp && timestamp < endTmstmp {
+			entries = append(entries, entry...)
+		} else if timestamp == startTmstmp || timestamp == endTmstmp {
+			for _, e := range entry {
+				if timestamp == startTmstmp && e.Seq() < startSeq {
+					continue
 				}
-			} else if timestamp == endTmstmp {
-				for _, e := range entry {
-					if e.Seq() > endSeq {
-						break
-					}
 
-					entries = append(entries, e)
+				if timestamp == endTmstmp && e.Seq() > endSeq {
+					break
 				}
-			} else {
-				entries = append(entries, entry...)
+
+				entries = append(entries, e)
 			}
+
 		}
 	}
 
