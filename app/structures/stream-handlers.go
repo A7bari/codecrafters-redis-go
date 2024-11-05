@@ -1,6 +1,7 @@
 package structures
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -145,9 +146,10 @@ func XRead(params []resp.RESP) []byte {
 		if err != nil || wait < 0 {
 			return resp.Error("ERR invalid timeout").Marshal()
 		}
-
+		fmt.Println("XRead block : Waiting for", wait, "ms")
 		<-time.After(time.Duration(wait) * time.Millisecond)
 
+		fmt.Println("XRead block : Done waiting, sending response")
 		res := xreadStreams(params[2:])
 		if res.Type == "array" && len(res.Array) == 0 {
 			return resp.Nil().Marshal()
