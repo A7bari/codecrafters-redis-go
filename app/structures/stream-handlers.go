@@ -148,12 +148,12 @@ func XRead(params []resp.RESP) []byte {
 		}
 
 		fmt.Println("XRead block : Waiting for", wait, "ms")
-		<-time.After(time.Duration(wait-700) * time.Millisecond)
+		<-time.After(time.Duration(wait) * time.Millisecond)
 
 		fmt.Println("XRead block : Done waiting, sending response")
 
-		res := xreadStreams(params[2:])
-		fmt.Println("XRead block : Response", res.Marshal())
+		res := xreadStreams(params[3:])
+		fmt.Println("XRead block : Response", res)
 
 		if res.Type == "array" && len(res.Array) == 0 {
 			return resp.Nil().Marshal()
