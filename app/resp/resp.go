@@ -203,7 +203,6 @@ func (r RESP) Marshal() []byte {
 		for _, item := range r.Array {
 			buf = append(buf, item.Marshal()...)
 		}
-
 		return buf
 	case "error":
 		msg := fmt.Sprintf("-%s\r\n", r.Bulk)

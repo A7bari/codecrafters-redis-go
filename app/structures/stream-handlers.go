@@ -90,7 +90,7 @@ func XRead(params []resp.RESP) []byte {
 	mut.RLock()
 	defer mut.RUnlock()
 
-	streams := make([]resp.RESP, 0)
+	streams := []resp.RESP{}
 
 	streamsLen := (len(params) - 1) / 2
 	for i := 1; i < streamsLen+1; i += 1 {
