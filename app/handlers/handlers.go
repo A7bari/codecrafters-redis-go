@@ -32,6 +32,7 @@ var handlers = map[string]func([]resp.RESP) []byte{
 
 func Handle(conn net.Conn, args []resp.RESP) error {
 	command := strings.ToUpper(args[0].Bulk)
+	fmt.Println("Received command: ", command, " with args: ", args)
 	handler, ok := handlers[command]
 	if !ok {
 		handler = notfound
@@ -44,7 +45,9 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 		return nil
 	}
 
-	conn.Write(handler(args[1:]))
+	go func() {
+		conn.Write(handler(args[1:]))
+	}()
 
 	if command == "PSYNC" {
 		config.AddReplicat(conn)
