@@ -110,3 +110,17 @@ func Typ(params []resp.RESP) []byte {
 
 	return resp.Bulk(value.Typ).Marshal()
 }
+
+func getMapValue(key string) (MapValue, bool) {
+	mut.RLock()
+	defer mut.RUnlock()
+
+	value, ok := mapStore[key]
+	return value, ok
+}
+
+func setMapValue(key string, value MapValue) {
+	mut.Lock()
+	mapStore[key] = value
+	mut.Unlock()
+}

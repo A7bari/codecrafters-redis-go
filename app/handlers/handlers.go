@@ -9,6 +9,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 	"github.com/codecrafters-io/redis-starter-go/app/structures"
+	"github.com/codecrafters-io/redis-starter-go/app/transactions"
 )
 
 type CommandHandler func([]resp.RESP) []byte
@@ -28,6 +29,7 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"XADD":     structures.Xadd,
 	"XRANGE":   structures.XRange,
 	"XREAD":    structures.XRead,
+	"INCR":     transactions.Incr,
 }
 
 func Handle(conn net.Conn, args []resp.RESP) error {
