@@ -1,9 +1,10 @@
 package structures
 
 import (
-	"fmt"
 	"math"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 )
@@ -82,9 +83,9 @@ func XRange(params []resp.RESP) []byte {
 	return resp.Array(res...).Marshal()
 }
 
-func XRead(params []resp.RESP) []byte {
-	if (len(params) % 2) != 1 {
-		return resp.Error("ERR wrong number of arguments for 'xread' command").Marshal()
+func xreadStreams(params []resp.RESP) resp.RESP {
+	if (len(params) % 2) != 0 {
+		return resp.Error("ERR wrong number of arguments for 'xread' command")
 	}
 
 	mut.RLock()
@@ -92,8 +93,8 @@ func XRead(params []resp.RESP) []byte {
 
 	streams := []resp.RESP{}
 
-	streamsLen := (len(params) - 1) / 2
-	for i := 1; i < streamsLen+1; i += 1 {
+	streamsLen := len(params) / 2
+	for i := 0; i < streamsLen; i += 1 {
 		streamKey := params[i].Bulk
 		val, ok := mapStore[streamKey]
 		if !ok || val.Typ != "stream" {
@@ -127,7 +128,32 @@ func XRead(params []resp.RESP) []byte {
 
 	}
 
-	res := resp.Array(streams...).Marshal()
-	fmt.Printf("XREAD: %s\n", string(res))
-	return res
+	return resp.Array(streams...)
+}
+
+func XRead(params []resp.RESP) []byte {
+	if len(params) < 1 {
+		return resp.Error("ERR wrong number of arguments for 'xread' command").Marshal()
+	}
+
+	if strings.ToUpper(params[0].Bulk) == "STREAMS" {
+		return xreadStreams(params[1:]).Marshal()
+	}
+
+	if strings.ToUpper(params[0].Bulk) == "BLOCK" {
+		wait, err := strconv.Atoi(params[1].Bulk)
+		if err != nil || wait < 0 {
+			return resp.Error("ERR invalid timeout").Marshal()
+		}
+
+		time.Sleep(time.Duration(wait) * time.Millisecond)
+		res := xreadStreams(params[2:])
+		if res.Type == "array" && len(res.Array) == 0 {
+			return resp.Nil().Marshal()
+		}
+
+		return res.Marshal()
+	}
+
+	return resp.Nil().Marshal()
 }
