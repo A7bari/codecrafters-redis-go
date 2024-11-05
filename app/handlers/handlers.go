@@ -45,9 +45,9 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 		return nil
 	}
 
-	go func() {
-		conn.Write(handler(args[1:]))
-	}()
+	// go func() {
+	conn.Write(handler(args[1:]))
+	// }()
 
 	if command == "PSYNC" {
 		config.AddReplicat(conn)
