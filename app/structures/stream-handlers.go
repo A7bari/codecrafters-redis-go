@@ -1,6 +1,7 @@
 package structures
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -83,19 +84,16 @@ func XRange(params []resp.RESP) []byte {
 	return resp.Array(res...).Marshal()
 }
 
-func xreadStreams(params []resp.RESP) resp.RESP {
-	if (len(params) % 2) != 0 {
-		return resp.Error("ERR wrong number of arguments for 'xread' command")
-	}
+func xreadStreams(streamKeys, ids []string) resp.RESP {
 
 	mut.RLock()
 	defer mut.RUnlock()
 
 	streams := []resp.RESP{}
 
-	streamsLen := len(params) / 2
+	streamsLen := len(streamKeys) / 2
 	for i := 0; i < streamsLen; i += 1 {
-		streamKey := params[i].Bulk
+		streamKey := streamKeys[i]
 		val, ok := mapStore[streamKey]
 		if !ok || val.Typ != "stream" {
 			continue
@@ -103,7 +101,7 @@ func xreadStreams(params []resp.RESP) resp.RESP {
 
 		stream := val.Stream
 
-		startKey := params[i+streamsLen].Bulk
+		startKey := ids[i]
 		entries := stream.Read(startKey)
 		for _, entry := range entries {
 			pairs := []resp.RESP{}
@@ -137,7 +135,12 @@ func XRead(params []resp.RESP) []byte {
 	}
 
 	if strings.ToUpper(params[0].Bulk) == "STREAMS" {
-		return xreadStreams(params[1:]).Marshal()
+		streamKeys, ids, err := foramtKeys(params[1:])
+		if err != nil {
+			return resp.Error(err.Error()).Marshal()
+		}
+
+		return xreadStreams(streamKeys, ids).Marshal()
 	}
 
 	if strings.ToUpper(params[0].Bulk) == "BLOCK" {
@@ -146,14 +149,19 @@ func XRead(params []resp.RESP) []byte {
 			return resp.Error("ERR invalid timeout").Marshal()
 		}
 
+		streamsKeys, ids, err := foramtKeys(params[3:])
+		if err != nil {
+			return resp.Error(err.Error()).Marshal()
+		}
+
 		if wait == 0 {
 			ch := make(chan bool)
-			go waitForNewEntry(params[3:], ch)
+			go waitForNewEntry(streamsKeys, ch)
 			<-ch
 		} else {
 			<-time.After(time.Duration(wait) * time.Millisecond)
 		}
-		res := xreadStreams(params[3:])
+		res := xreadStreams(streamsKeys, ids)
 
 		if res.Type == "array" && len(res.Array) == 0 {
 			return resp.Nil().Marshal()
@@ -165,13 +173,11 @@ func XRead(params []resp.RESP) []byte {
 	return resp.Nil().Marshal()
 }
 
-func waitForNewEntry(params []resp.RESP, ch chan bool) {
-	half := len(params) / 2
-	streams := params[:half]
-	originalSize := streamsSize(streams)
+func waitForNewEntry(streamsKeys []string, ch chan bool) {
+	originalSize := streamsSize(streamsKeys)
 
 	for {
-		newSize := streamsSize(streams)
+		newSize := streamsSize(streamsKeys)
 		if newSize > originalSize {
 			ch <- true
 			return
@@ -181,10 +187,10 @@ func waitForNewEntry(params []resp.RESP, ch chan bool) {
 	}
 }
 
-func streamsSize(streams []resp.RESP) int {
+func streamsSize(streams []string) int {
 	size := 0
-	for _, streamResp := range streams {
-		stream, ok := mapStore[streamResp.Bulk]
+	for _, streamKey := range streams {
+		stream, ok := mapStore[streamKey]
 		if !ok || stream.Typ != "stream" {
 			continue
 		}
@@ -193,4 +199,36 @@ func streamsSize(streams []resp.RESP) int {
 	}
 
 	return size
+}
+
+func foramtKeys(params []resp.RESP) ([]string, []string, error) {
+	if len(params)%2 != 0 {
+		return nil, nil, fmt.Errorf("ERR wrong number of arguments for 'xread' command")
+	}
+
+	streams := []string{}
+	ids := []string{}
+
+	half := len(params) / 2
+	for i := 0; i < half; i += 1 {
+		streamKey := params[i].Bulk
+		id := params[i+half].Bulk
+
+		if id == "$" {
+			stream, ok := mapStore[streamKey]
+			if !ok || stream.Typ != "stream" {
+				id = "0-0"
+			} else {
+				lastTimestamp := stream.Stream.LastTimestamp()
+				lastSeq := stream.Stream.LastSeq(lastTimestamp)
+
+				id = fmt.Sprintf("%d-%d", lastTimestamp, lastSeq)
+			}
+		}
+
+		streams = append(streams, streamKey)
+		ids = append(ids, id)
+	}
+
+	return streams, ids, nil
 }

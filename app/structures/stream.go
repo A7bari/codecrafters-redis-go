@@ -141,6 +141,10 @@ func (s *Stream) LastSeq(timestamp int64) int {
 	return entries[len(entries)-1].Seq()
 }
 
+func (s *Stream) LastTimestamp() int64 {
+	return s.lastTimestamp
+}
+
 func (s *Stream) Len() int {
 	return s.size
 }
