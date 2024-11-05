@@ -51,7 +51,7 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		handlers.Handle(conn, value.Array)
+		go handlers.Handle(conn, value.Array)
 	}
 
 	conn.Close()
