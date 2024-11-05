@@ -147,7 +147,7 @@ func XRead(params []resp.RESP) []byte {
 			return resp.Error("ERR invalid timeout").Marshal()
 		}
 		fmt.Println("XRead block : Waiting for", wait, "ms")
-		<-time.After(time.Duration(wait-10) * time.Millisecond)
+		<-time.After(time.Duration(wait-100) * time.Millisecond)
 
 		fmt.Println("XRead block : Done waiting, sending response")
 		res := xreadStreams(params[2:])
