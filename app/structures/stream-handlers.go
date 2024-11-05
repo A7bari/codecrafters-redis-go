@@ -175,15 +175,16 @@ func XRead(params []resp.RESP) []byte {
 
 func waitForNewEntry(streamsKeys []string, ch chan bool) {
 	originalSize := streamsSize(streamsKeys)
-
+	fmt.Println("original size: ", originalSize)
 	for {
 		newSize := streamsSize(streamsKeys)
 		if newSize > originalSize {
 			ch <- true
+			fmt.Println("new entry added : size -  ", newSize)
 			return
 		}
 
-		<-time.After(100 * time.Millisecond)
+		<-time.After(50 * time.Millisecond)
 	}
 }
 
