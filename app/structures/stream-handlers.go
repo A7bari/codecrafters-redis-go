@@ -91,7 +91,7 @@ func xreadStreams(streamKeys, ids []string) resp.RESP {
 
 	streams := []resp.RESP{}
 
-	streamsLen := len(streamKeys) / 2
+	streamsLen := len(streamKeys)
 	for i := 0; i < streamsLen; i += 1 {
 		streamKey := streamKeys[i]
 		val, ok := mapStore[streamKey]
