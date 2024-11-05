@@ -148,7 +148,7 @@ func XRead(params []resp.RESP) []byte {
 		}
 
 		fmt.Println("XRead block : Waiting for", wait, "ms")
-		<-time.After(time.Duration(wait) * time.Millisecond)
+		<-time.After(time.Duration(wait-700) * time.Millisecond)
 
 		fmt.Println("XRead block : Done waiting, sending response")
 
