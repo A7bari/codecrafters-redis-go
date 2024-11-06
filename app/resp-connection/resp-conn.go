@@ -23,6 +23,7 @@ type RespConn struct {
 }
 
 func NewRespConn(conn net.Conn) *RespConn {
+	fmt.Println("New connection from: ", conn.RemoteAddr().String())
 	return &RespConn{
 		Conn:     conn,
 		Reader:   resp.NewRespReader(bufio.NewReader(conn)),

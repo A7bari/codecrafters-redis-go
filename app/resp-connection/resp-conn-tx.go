@@ -18,9 +18,9 @@ func (client *RespConn) GetTxHandler(command string) handlers.CommandHandler {
 }
 
 func (client *RespConn) Exec(params []resp.RESP) []byte {
-	if len(client.TxQueue) == 0 {
-		resp.Array().Marshal()
+	if client.TxQueue != nil {
 		client.TxQueue = nil
+		return resp.Array().Marshal()
 	}
 
 	return resp.Error("ERR EXEC without MULTI").Marshal()
