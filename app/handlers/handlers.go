@@ -30,6 +30,7 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"XRANGE":   structures.XRange,
 	"XREAD":    structures.XRead,
 	"INCR":     transactions.Incr,
+	"MULTI":    transactions.Multi,
 }
 
 func Handle(conn net.Conn, args []resp.RESP) error {
