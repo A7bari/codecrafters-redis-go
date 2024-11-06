@@ -36,30 +36,10 @@ func main() {
 	}
 }
 
-// func handleConnection(conn net.Conn) {
-// 	reader := resp.NewRespReader(bufio.NewReader(conn))
-// 	for {
-// 		value, err := reader.Read()
-// 		if err != nil {
-// 			fmt.Println("Error reading from connection: ", err.Error())
-// 			break
-// 		}
-
-// 		if value.Type != "array" || len(value.Array) < 1 {
-// 			fmt.Println("Invalid command")
-// 			break
-// 		}
-
-// 		handlers.Handle(conn, value.Array)
-// 	}
-
-// 	conn.Close()
-// }
-
 func setup() error {
 	//initile the map if rdb file is found
 	initializeMapStore()
-	// if handle the replica if itis a slave
+	// if handle the replica if it is a slave
 	if config.Get().Role == "slave" {
 		masterHost := config.Get().MasterHost
 		masterPort := config.Get().MasterPort

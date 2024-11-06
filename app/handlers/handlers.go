@@ -18,12 +18,11 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"INFO":     info,
 	"PSYNC":    Psync,
 	"REPLCONF": Replconf,
-	// "WAIT":     replica_hanslers.Wait,
-	"TYPE":   structures.Typ,
-	"XADD":   structures.Xadd,
-	"XRANGE": structures.XRange,
-	"XREAD":  structures.XRead,
-	"INCR":   Incr,
+	"TYPE":     structures.Typ,
+	"XADD":     structures.Xadd,
+	"XRANGE":   structures.XRange,
+	"XREAD":    structures.XRead,
+	"INCR":     Incr,
 }
 
 func GetHandler(command string) CommandHandler {
