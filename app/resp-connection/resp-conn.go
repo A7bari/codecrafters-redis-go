@@ -62,12 +62,6 @@ func (r *RespConn) Listen() {
 func (r *RespConn) handleClient(args []resp.RESP) error {
 	command := strings.ToUpper(args[0].Bulk)
 
-	// if the transaction is in progress, add the command to the queue
-	if r.TxQueue != nil {
-		r.TxQueue = append(r.TxQueue, args)
-		r.Write(resp.String("QUEUED").Marshal())
-		return nil
-	}
 	// handle replication commands
 	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
 		offset, _ := strconv.Atoi(args[2].Bulk)
@@ -80,19 +74,26 @@ func (r *RespConn) handleClient(args []resp.RESP) error {
 		return nil
 	}
 
-	// handle tx commands
+	if command == "PSYNC" {
+		GetReplicaManager().AddReplica(r)
+		return nil
+	}
+
+	// is the command a transaction command
 	handler := r.GetTxHandler(command)
+
 	if handler == nil {
+		// if the transaction is in progress, add the command to the queue
+		if r.TxQueue != nil {
+			r.TxQueue = append(r.TxQueue, args)
+			r.Write(resp.String("QUEUED").Marshal())
+			return nil
+		}
 		// if no tx handler is found, use the default handler
 		handler = handlers.GetHandler(command)
 	}
 
 	r.Conn.Write(handler(args[1:]))
-
-	if command == "PSYNC" {
-		GetReplicaManager().AddReplica(r)
-		return nil
-	}
 
 	// Propagate the command to all replicas
 	if isWriteCommand(command) {
