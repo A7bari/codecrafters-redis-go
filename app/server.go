@@ -1,15 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"net"
 	"os"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
-	"github.com/codecrafters-io/redis-starter-go/app/handlers"
 	"github.com/codecrafters-io/redis-starter-go/app/rdb"
-	"github.com/codecrafters-io/redis-starter-go/app/resp"
+	respConnection "github.com/codecrafters-io/redis-starter-go/app/resp-connection"
 	"github.com/codecrafters-io/redis-starter-go/app/structures"
 )
 
@@ -33,42 +31,47 @@ func main() {
 			break
 		}
 
-		go handleConnection(conn)
+		client := respConnection.NewRespConn(conn)
+		go client.Listen(false)
 	}
 }
 
-func handleConnection(conn net.Conn) {
-	reader := resp.NewRespReader(bufio.NewReader(conn))
-	for {
-		value, err := reader.Read()
-		if err != nil {
-			fmt.Println("Error reading from connection: ", err.Error())
-			break
-		}
+// func handleConnection(conn net.Conn) {
+// 	reader := resp.NewRespReader(bufio.NewReader(conn))
+// 	for {
+// 		value, err := reader.Read()
+// 		if err != nil {
+// 			fmt.Println("Error reading from connection: ", err.Error())
+// 			break
+// 		}
 
-		if value.Type != "array" || len(value.Array) < 1 {
-			fmt.Println("Invalid command")
-			break
-		}
+// 		if value.Type != "array" || len(value.Array) < 1 {
+// 			fmt.Println("Invalid command")
+// 			break
+// 		}
 
-		handlers.Handle(conn, value.Array)
-	}
+// 		handlers.Handle(conn, value.Array)
+// 	}
 
-	conn.Close()
-}
+// 	conn.Close()
+// }
 
 func setup() error {
 	//initile the map if rdb file is found
 	initializeMapStore()
 	// if handle the replica if itis a slave
 	if config.Get().Role == "slave" {
-		Handshack()
-		errChan := make(chan error)
-		ListenOnMaster(errChan)
-		go func() {
-			err := <-errChan
-			fmt.Println("Error reading from master: ", err.Error())
-		}()
+		masterHost := config.Get().MasterHost
+		masterPort := config.Get().MasterPort
+		masterConn, err := net.Dial("tcp", masterHost+":"+masterPort)
+		if err != nil {
+			fmt.Println("Error connecting to master: ", err.Error())
+			return err
+		}
+
+		master := respConnection.NewRespConn(masterConn)
+		master.Handshack()
+		go master.Listen(true)
 	}
 
 	return nil

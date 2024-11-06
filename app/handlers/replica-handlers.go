@@ -42,12 +42,3 @@ func getRdbFile() []byte {
 	}
 	return data
 }
-
-func Wait(params []resp.RESP) []byte {
-	fmt.Println("Received WAIT command: ", params)
-	count, _ := strconv.Atoi(params[0].Bulk)
-	timeout, _ := strconv.Atoi(params[1].Bulk)
-	acks := config.AckRepl(timeout, count)
-
-	return resp.Integer(acks).Marshal()
-}

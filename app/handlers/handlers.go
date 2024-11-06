@@ -1,11 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-	"net"
-	"strconv"
-	"strings"
-
 	"github.com/codecrafters-io/redis-starter-go/app/config"
 	"github.com/codecrafters-io/redis-starter-go/app/resp"
 	"github.com/codecrafters-io/redis-starter-go/app/structures"
@@ -24,61 +19,70 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"INFO":     info,
 	"PSYNC":    Psync,
 	"REPLCONF": Replconf,
-	"WAIT":     Wait,
-	"TYPE":     structures.Typ,
-	"XADD":     structures.Xadd,
-	"XRANGE":   structures.XRange,
-	"XREAD":    structures.XRead,
-	"INCR":     transactions.Incr,
-	"MULTI":    transactions.Multi,
-	"EXEC":     transactions.Exec,
+	// "WAIT":     replica_hanslers.Wait,
+	"TYPE":   structures.Typ,
+	"XADD":   structures.Xadd,
+	"XRANGE": structures.XRange,
+	"XREAD":  structures.XRead,
+	"INCR":   transactions.Incr,
+	"MULTI":  transactions.Multi,
+	"EXEC":   transactions.Exec,
 }
 
-func Handle(conn net.Conn, args []resp.RESP) error {
-	command := strings.ToUpper(args[0].Bulk)
+func GetHandler(command string) CommandHandler {
 	handler, ok := handlers[command]
 	if !ok {
 		handler = notfound
 	}
 
-	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
-		offset, _ := strconv.Atoi(args[2].Bulk)
-		go config.Replica(conn).ReceiveAck(offset)
-		return nil
-	}
-
-	conn.Write(handler(args[1:]))
-
-	if command == "PSYNC" {
-		config.AddReplicat(conn)
-		return fmt.Errorf("PSYNC")
-	}
-
-	// Propagate the command to all replicas
-	if isWriteCommand(command) {
-		for i := 0; i < len(config.Get().Replicas); i++ {
-			replica := config.Get().Replicas[i]
-			writtenSize, _ := replica.Write(resp.Array(args...).Marshal())
-			replica.AddOffset(writtenSize)
-		}
-
-	}
-
-	return nil
+	return handler
 }
 
-func HandleMaster(conn net.Conn, args []resp.RESP) {
-	command := strings.ToUpper(args[0].Bulk)
-	handler, ok := handlers[command]
-	if !ok {
-		handler = notfound
-	}
+// func Handle(conn net.Conn, args []resp.RESP) error {
+// 	command := strings.ToUpper(args[0].Bulk)
+// 	handler, ok := handlers[command]
+// 	if !ok {
+// 		handler = notfound
+// 	}
 
-	data := handler(args[1:])
-	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "GETACK" {
-		conn.Write(data)
-	}
-}
+// 	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
+// 		offset, _ := strconv.Atoi(args[2].Bulk)
+// 		go config.Replica(conn).ReceiveAck(offset)
+// 		return nil
+// 	}
+
+// 	conn.Write(handler(args[1:]))
+
+// 	if command == "PSYNC" {
+// 		config.AddReplicat(conn)
+// 		return fmt.Errorf("PSYNC")
+// 	}
+
+// 	// Propagate the command to all replicas
+// 	if isWriteCommand(command) {
+// 		for i := 0; i < len(config.Get().Replicas); i++ {
+// 			replica := config.Get().Replicas[i]
+// 			writtenSize, _ := replica.Write(resp.Array(args...).Marshal())
+// 			replica.AddOffset(writtenSize)
+// 		}
+
+// 	}
+
+// 	return nil
+// }
+
+// func HandleMaster(conn net.Conn, args []resp.RESP) {
+// 	command := strings.ToUpper(args[0].Bulk)
+// 	handler, ok := handlers[command]
+// 	if !ok {
+// 		handler = notfound
+// 	}
+
+// 	data := handler(args[1:])
+// 	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "GETACK" {
+// 		conn.Write(data)
+// 	}
+// }
 
 func ping(params []resp.RESP) []byte {
 	return resp.String("PONG").Marshal()
