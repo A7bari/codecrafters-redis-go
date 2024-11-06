@@ -1,4 +1,4 @@
-package transactions
+package handlers
 
 import (
 	"github.com/codecrafters-io/redis-starter-go/app/resp"

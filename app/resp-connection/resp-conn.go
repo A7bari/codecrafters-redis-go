@@ -19,7 +19,7 @@ type RespConn struct {
 	id       string
 	mu       sync.Mutex
 	AckChans []chan int
-	InMulti  bool
+	TxQueue  []*resp.RESP
 }
 
 func NewRespConn(conn net.Conn) *RespConn {
@@ -30,7 +30,7 @@ func NewRespConn(conn net.Conn) *RespConn {
 		id:       conn.RemoteAddr().String(),
 		mu:       sync.Mutex{},
 		AckChans: make([]chan int, 0),
-		InMulti:  false,
+		TxQueue:  nil,
 	}
 }
 
@@ -73,7 +73,13 @@ func (r *RespConn) handleClient(args []resp.RESP) error {
 		return nil
 	}
 
-	handler := handlers.GetHandler(command)
+	// handle tx commands
+	handler := r.GetTxHandler(command)
+	if handler == nil {
+		// if no tx handler is found, use the default handler
+		handler = handlers.GetHandler(command)
+	}
+
 	r.Conn.Write(handler(args[1:]))
 
 	if command == "PSYNC" {
