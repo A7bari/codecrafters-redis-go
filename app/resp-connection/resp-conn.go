@@ -42,7 +42,7 @@ func (r *RespConn) Id() string {
 	return r.id
 }
 
-func (r *RespConn) Listen(isMaster bool) {
+func (r *RespConn) Listen() {
 	for {
 		value, err := r.Reader.Read()
 		if err != nil {
@@ -52,12 +52,7 @@ func (r *RespConn) Listen(isMaster bool) {
 		if value.Type != "array" || len(value.Array) < 1 {
 			break
 		}
-
-		if isMaster {
-			r.handleMaster(value.Array)
-		} else {
-			r.handleClient(value.Array)
-		}
+		r.handleClient(value.Array)
 	}
 
 	r.Close()

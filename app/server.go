@@ -32,7 +32,7 @@ func main() {
 		}
 
 		client := respConnection.NewRespConn(conn)
-		go client.Listen(false)
+		go client.Listen()
 	}
 }
 
@@ -71,7 +71,14 @@ func setup() error {
 
 		master := respConnection.NewRespConn(masterConn)
 		master.Handshack()
-		go master.Listen(true)
+		errChan := make(chan error)
+		go master.ListenOnMaster(errChan)
+
+		go func() {
+			err := <-errChan
+			fmt.Println("Error reading from master: ", err.Error())
+		}()
+
 	}
 
 	return nil

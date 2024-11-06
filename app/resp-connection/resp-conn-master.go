@@ -1,6 +1,7 @@
 package respConnection
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/app/config"
@@ -33,5 +34,25 @@ func (master *RespConn) handleMaster(args []resp.RESP) {
 	data := handler(args[1:])
 	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "GETACK" {
 		master.Write(data)
+	}
+}
+
+func (master *RespConn) ListenOnMaster(errChan chan error) {
+	for {
+		value, err := master.Read()
+		if err != nil {
+			errChan <- err
+			continue
+		}
+
+		if value.Type == "array" && len(value.Array) > 0 {
+			master.handleMaster(value.Array)
+		} else {
+			errChan <- fmt.Errorf("invalid command")
+		}
+
+		config.IncOffset(
+			len(value.Marshal()),
+		)
 	}
 }
