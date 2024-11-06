@@ -74,26 +74,27 @@ func (r *RespConn) handleClient(args []resp.RESP) error {
 		return nil
 	}
 
-	if command == "PSYNC" {
-		GetReplicaManager().AddReplica(r)
-		return nil
-	}
-
-	// is the command a transaction command
+	// handle tx commands
 	handler := r.GetTxHandler(command)
-
 	if handler == nil {
+
 		// if the transaction is in progress, add the command to the queue
 		if r.TxQueue != nil {
 			r.TxQueue = append(r.TxQueue, args)
 			r.Write(resp.String("QUEUED").Marshal())
 			return nil
 		}
+
 		// if no tx handler is found, use the default handler
 		handler = handlers.GetHandler(command)
 	}
 
 	r.Conn.Write(handler(args[1:]))
+
+	if command == "PSYNC" {
+		GetReplicaManager().AddReplica(r)
+		return nil
+	}
 
 	// Propagate the command to all replicas
 	if isWriteCommand(command) {
