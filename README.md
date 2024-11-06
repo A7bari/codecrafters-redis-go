@@ -1,33 +1,23 @@
-[![progress-banner](https://backend.codecrafters.io/progress/redis/16561eea-1fad-40d8-bd5c-376223e7423d)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+# Build Your Own Redis
 
-This is a starting point for Go solutions to the
-["Build Your Own Redis" Challenge](https://codecrafters.io/challenges/redis).
 
-In this challenge, you'll build a toy Redis clone that's capable of handling
-basic commands like `PING`, `SET` and `GET`. Along the way we'll learn about
-event loops, the Redis protocol and more.
+This is my implementation of the ["Build Your Own Redis" ](https://codecrafters.io/challenges/redis) challenge from Codecrafters. I've built a Redis-compatible server using Go, covering the following key features:
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+## Command Handling
+Implemented the basic Redis command protocol to handle common commands like `SET`, `GET`, `DEL`, etc. The server can parse client requests and execute the corresponding operations.
 
-# Passing the first stage
+## RDB Persistence
+Added support for reading and writing Redis' RDB (Redis Database) files, allowing data to persist across server restarts.
 
-The entry point for your Redis implementation is in `app/server.go`. Study and
-uncomment the relevant code, and push your changes to pass the first stage:
+## Replication
+Implemented a basic replication mechanism, where a Redis server can function as a replica, replicating data from a master server.
 
-```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
-```
+## Streams
+Included support for Redis Streams, a data structure that enables advanced message queue and event streaming functionality.
 
-That's all!
+## Transactions
+Added transaction support, allowing clients to execute multiple commands as an atomic unit, with rollback capabilities.
 
-# Stage 2 & beyond
+This project was a great learning experience, diving deep into the inner workings of Redis and building a functional in-memory data store from scratch.
 
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `go (1.19)` installed locally
-1. Run `./your_program.sh` to run your Redis server, which is implemented in
-   `app/server.go`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
+Feel free to explore the code and let me know if you have any questions or feedback!
