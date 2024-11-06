@@ -22,35 +22,32 @@ var handlers = map[string]func([]resp.RESP) []byte{
 	"ECHO":     echo,
 	"KEYS":     structures.Keys,
 	"INFO":     info,
-	"PSYNC":    psync,
-	"REPLCONF": replconf,
-	"WAIT":     wait,
+	"PSYNC":    Psync,
+	"REPLCONF": Replconf,
+	"WAIT":     Wait,
 	"TYPE":     structures.Typ,
 	"XADD":     structures.Xadd,
 	"XRANGE":   structures.XRange,
 	"XREAD":    structures.XRead,
 	"INCR":     transactions.Incr,
 	"MULTI":    transactions.Multi,
+	"EXEC":     transactions.Exec,
 }
 
 func Handle(conn net.Conn, args []resp.RESP) error {
 	command := strings.ToUpper(args[0].Bulk)
-	fmt.Println("Received command: ", command, " with args: ", args)
 	handler, ok := handlers[command]
 	if !ok {
 		handler = notfound
 	}
 
 	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
-		fmt.Println("warning: recieved replica ack from client handler ")
 		offset, _ := strconv.Atoi(args[2].Bulk)
 		go config.Replica(conn).ReceiveAck(offset)
 		return nil
 	}
 
-	// go func() {
 	conn.Write(handler(args[1:]))
-	// }()
 
 	if command == "PSYNC" {
 		config.AddReplicat(conn)
@@ -59,16 +56,9 @@ func Handle(conn net.Conn, args []resp.RESP) error {
 
 	// Propagate the command to all replicas
 	if isWriteCommand(command) {
-		fmt.Print("Propagating command to replicas: ", string(resp.Array(args...).Marshal()))
 		for i := 0; i < len(config.Get().Replicas); i++ {
 			replica := config.Get().Replicas[i]
 			writtenSize, _ := replica.Write(resp.Array(args...).Marshal())
-			// if err != nil {
-			// 	// disconnected
-			// 	config.RemoveReplica(replica)
-			// 	i--
-			// 	return
-			// }
 			replica.AddOffset(writtenSize)
 		}
 
