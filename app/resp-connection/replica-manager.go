@@ -61,7 +61,7 @@ loop:
 		}
 	}
 
-	close(ackChan)
+	r.ClearAckChans(ackChan)
 
 	return count
 }
