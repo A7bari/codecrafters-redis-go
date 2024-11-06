@@ -27,6 +27,6 @@ func (client *RespConn) Exec(params []resp.RESP) []byte {
 }
 
 func (client *RespConn) Multi(params []resp.RESP) []byte {
-	client.TxQueue = make([]*resp.RESP, 0)
+	client.TxQueue = make([][]resp.RESP, 0)
 	return resp.String("OK").Marshal()
 }

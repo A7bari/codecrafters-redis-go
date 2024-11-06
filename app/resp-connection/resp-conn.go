@@ -19,7 +19,7 @@ type RespConn struct {
 	id       string
 	mu       sync.Mutex
 	AckChans []chan int
-	TxQueue  []*resp.RESP
+	TxQueue  [][]resp.RESP
 }
 
 func NewRespConn(conn net.Conn) *RespConn {
@@ -62,6 +62,12 @@ func (r *RespConn) Listen() {
 func (r *RespConn) handleClient(args []resp.RESP) error {
 	command := strings.ToUpper(args[0].Bulk)
 
+	// if the transaction is in progress, add the command to the queue
+	if r.TxQueue != nil {
+		r.TxQueue = append(r.TxQueue, args)
+		r.Write(resp.String("QUEUED").Marshal())
+		return nil
+	}
 	// handle replication commands
 	if command == "REPLCONF" && strings.ToUpper(args[1].Bulk) == "ACK" {
 		offset, _ := strconv.Atoi(args[2].Bulk)
